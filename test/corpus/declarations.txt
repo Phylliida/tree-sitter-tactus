@@ -1239,10 +1239,10 @@ mod macos_only {}
 --------------------------------------------------------------------------------
 
 (source_file
+  (attribute_item
+    (attribute
+      (identifier)))
   (function_item
-    (attribute_item
-      (attribute
-        (identifier)))
     name: (identifier)
     parameters: (parameters)
     body: (block))
@@ -1358,25 +1358,25 @@ fn baz() {}
 --------------------------------------------------------------------------------
 
 (source_file
-  (function_item
-    (attribute_item
-      (attribute
+  (attribute_item
+    (attribute
+      (identifier)
+      (macro_invocation
         (identifier)
-        (macro_invocation
-          (identifier)
-          (token_tree
-            (string_literal
-              (string_content))))))
+        (token_tree
+          (string_literal
+            (string_content))))))
+  (function_item
     (identifier)
     (parameters)
     (block))
-  (function_item
-    (attribute_item
-      (attribute
+  (attribute_item
+    (attribute
+      (identifier)
+      (scoped_identifier
         (identifier)
-        (scoped_identifier
-          (identifier)
-          (identifier))))
+        (identifier))))
+  (function_item
     (identifier)
     (parameters)
     (block)))
