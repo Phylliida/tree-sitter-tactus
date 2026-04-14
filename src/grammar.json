@@ -37,6 +37,10 @@
         {
           "type": "SYMBOL",
           "name": "_declaration_statement"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "line_comment"
         }
       ]
     },
@@ -628,6 +632,10 @@
         {
           "type": "SYMBOL",
           "name": "_non_special_token"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "line_comment"
         }
       ]
     },
@@ -6335,6 +6343,10 @@
           },
           "named": true,
           "value": "token_tree"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "line_comment"
         }
       ]
     },
@@ -8880,7 +8892,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "block"
+          "name": "_tactic_brace_body"
         }
       ]
     },
@@ -8923,8 +8935,25 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "SYMBOL",
-              "name": "_expression"
+              "type": "SEQ",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "_expression"
+                },
+                {
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "SYMBOL",
+                      "name": "line_comment"
+                    },
+                    {
+                      "type": "BLANK"
+                    }
+                  ]
+                }
+              ]
             },
             {
               "type": "BLANK"
@@ -8946,9 +8975,202 @@
         },
         {
           "type": "SYMBOL",
-          "name": "block"
+          "name": "_tactic_brace_body"
         }
       ]
+    },
+    "_tactic_brace_body": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "{"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_tactic_item"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "}"
+        }
+      ]
+    },
+    "_tactic_item": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "{"
+            },
+            {
+              "type": "REPEAT",
+              "content": {
+                "type": "SYMBOL",
+                "name": "_tactic_item"
+              }
+            },
+            {
+              "type": "STRING",
+              "value": "}"
+            }
+          ]
+        },
+        {
+          "type": "TOKEN",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "--"
+              },
+              {
+                "type": "PATTERN",
+                "value": "[^\\n]*"
+              }
+            ]
+          }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_tactic_lean_block_comment"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_tactic_string_literal"
+        },
+        {
+          "type": "PATTERN",
+          "value": "[^{}\\-\\/\"]+"
+        },
+        {
+          "type": "TOKEN",
+          "content": {
+            "type": "PREC",
+            "value": -1,
+            "content": {
+              "type": "STRING",
+              "value": "-"
+            }
+          }
+        },
+        {
+          "type": "TOKEN",
+          "content": {
+            "type": "PREC",
+            "value": -1,
+            "content": {
+              "type": "STRING",
+              "value": "/"
+            }
+          }
+        },
+        {
+          "type": "TOKEN",
+          "content": {
+            "type": "PREC",
+            "value": -1,
+            "content": {
+              "type": "STRING",
+              "value": "\""
+            }
+          }
+        }
+      ]
+    },
+    "_tactic_lean_block_comment": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "/-"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_tactic_lean_block_comment_content"
+          }
+        },
+        {
+          "type": "STRING",
+          "value": "-/"
+        }
+      ]
+    },
+    "_tactic_lean_block_comment_content": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_tactic_lean_block_comment"
+        },
+        {
+          "type": "PATTERN",
+          "value": "[^-\\/]+"
+        },
+        {
+          "type": "TOKEN",
+          "content": {
+            "type": "PREC",
+            "value": -1,
+            "content": {
+              "type": "STRING",
+              "value": "-"
+            }
+          }
+        },
+        {
+          "type": "TOKEN",
+          "content": {
+            "type": "PREC",
+            "value": -1,
+            "content": {
+              "type": "STRING",
+              "value": "/"
+            }
+          }
+        }
+      ]
+    },
+    "_tactic_string_literal": {
+      "type": "TOKEN",
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "\""
+          },
+          {
+            "type": "REPEAT",
+            "content": {
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "PATTERN",
+                  "value": "[^\"\\\\]"
+                },
+                {
+                  "type": "PATTERN",
+                  "value": "\\\\."
+                }
+              ]
+            }
+          },
+          {
+            "type": "STRING",
+            "value": "\""
+          }
+        ]
+      }
     },
     "forall_expression": {
       "type": "PREC",
@@ -9171,7 +9393,7 @@
             "name": "proof",
             "content": {
               "type": "SYMBOL",
-              "name": "block"
+              "name": "_tactic_brace_body"
             }
           }
         ]
@@ -10797,10 +11019,6 @@
     {
       "type": "PATTERN",
       "value": "\\s"
-    },
-    {
-      "type": "SYMBOL",
-      "name": "line_comment"
     },
     {
       "type": "SYMBOL",

@@ -64,7 +64,10 @@ module.exports = grammar({
 
   extras: $ => [
     /\s/,
-    $.line_comment,
+    // line_comment is NOT in extras — it's handled explicitly in Rust grammar
+    // rules so that // is NOT consumed inside tactic blocks (Lean uses -- for
+    // comments, and // is integer division). block_comment stays in extras
+    // because /* */ doesn't conflict with Lean syntax.
     $.block_comment,
   ],
 
@@ -140,6 +143,7 @@ module.exports = grammar({
     _statement: $ => choice(
       $.expression_statement,
       $._declaration_statement,
+      $.line_comment,
     ),
 
     empty_statement: _ => ';',
@@ -239,6 +243,7 @@ module.exports = grammar({
       $.token_repetition,
       $.metavariable,
       $._non_special_token,
+      $.line_comment,
     ),
 
     token_tree: $ => choice(
@@ -358,7 +363,7 @@ module.exports = grammar({
 
     enum_variant_list: $ => seq(
       '{',
-      sepBy(',', seq(repeat($.attribute_item), $.enum_variant)),
+      sepBy(',', choice(seq(repeat($.attribute_item), $.enum_variant), $.line_comment)),
       optional(','),
       '}',
     ),
@@ -378,7 +383,7 @@ module.exports = grammar({
 
     field_declaration_list: $ => seq(
       '{',
-      sepBy(',', seq(repeat($.attribute_item), $.field_declaration)),
+      sepBy(',', choice(seq(repeat($.attribute_item), $.field_declaration), $.line_comment)),
       optional(','),
       '}',
     ),
@@ -1125,6 +1130,7 @@ module.exports = grammar({
     _delim_tokens: $ => choice(
       $._non_delim_token,
       alias($.delim_token_tree, $.token_tree),
+      $.line_comment,
     ),
 
     // Should match any token other than a delimiter.
@@ -1509,14 +1515,14 @@ module.exports = grammar({
     // Tactus: proof block (ghost code inside exec functions)
     proof_block: $ => seq(
       'proof',
-      $.block,
+      $._tactic_brace_body,
     ),
 
     block: $ => seq(
       optional(seq($.label, ':')),
       '{',
       repeat($._statement),
-      optional($._expression),
+      optional(seq($._expression, optional($.line_comment))),
       '}',
     ),
 
@@ -1534,10 +1540,73 @@ module.exports = grammar({
     // within tactic blocks.
 
     // by { ... } — tactic proof block
+    // Uses _tactic_brace_body instead of $.block so that // is NOT treated as
+    // a Rust line comment inside tactic blocks (Lean uses -- for comments).
     tactic_block: $ => seq(
       'by',
-      $.block,
+      $._tactic_brace_body,
     ),
+
+    // Tactic brace body: { ... } where content is Lean, not Rust.
+    // Key difference from $.block: // is NOT a line comment (Lean uses --).
+    // We achieve this by defining a high-precedence token for // that beats
+    // the line_comment extra when _tactic_item is in the valid token set.
+    _tactic_brace_body: $ => seq(
+      '{',
+      repeat($._tactic_item),
+      '}',
+    ),
+
+    _tactic_item: $ => choice(
+      // Nested balanced braces (Lean uses { } for match, do, etc.)
+      seq('{', repeat($._tactic_item), '}'),
+      // Lean line comment: -- to end of line (consumes } on same line)
+      token(seq('--', /[^\n]*/)),
+      // // is just content here — NOT a comment. Since line_comment is not in
+      // extras, // won't be auto-consumed. It matches as two / tokens via the
+      // single-slash rule below.
+      // Lean nestable block comment: /- ... -/
+      $._tactic_lean_block_comment,
+      // String literal: "..." with \ escapes (prevents } inside strings from closing block)
+      $._tactic_string_literal,
+      // Bulk content: anything that's not a brace, dash, slash, or quote
+      // This matches Unicode like ⟨⟩·∀∃∧∨→↔≤≥≠ in one token
+      /[^{}\-\/"]+/,
+      // Single dash (not part of -- line comment); low prec so -- is preferred
+      token(prec(-1, '-')),
+      // Single slash; low prec so /- is preferred. // is two of these.
+      token(prec(-1, '/')),
+      // Single quote (unclosed string fallback)
+      token(prec(-1, '"')),
+    ),
+
+    // Lean nestable block comment: /- ... -/
+    // Recursive grammar handles nesting. Since line_comment is not in extras,
+    // // inside the block comment is just two / characters — no interference.
+    _tactic_lean_block_comment: $ => seq(
+      '/-',
+      repeat($._tactic_lean_block_comment_content),
+      '-/',
+    ),
+
+    _tactic_lean_block_comment_content: $ => choice(
+      $._tactic_lean_block_comment,   // nested /- -/
+      /[^-\/]+/,                       // bulk: anything not - or /
+      token(prec(-1, '-')),            // single - (lexer prefers '-/' over '-')
+      token(prec(-1, '/')),            // single / (lexer prefers '/-' over '/')
+    ),
+
+    // Lean string literal: "..." with \ escape sequences
+    // Wrapped in token() so it's a single opaque token — no extras inside,
+    // meaning // in URLs like "https://..." won't be eaten as a comment.
+    _tactic_string_literal: $ => token(seq(
+      '"',
+      repeat(choice(
+        /[^"\\]/,    // any char except " and \ (including newlines, {, }, etc.)
+        /\\./,       // escape sequence: \ followed by any char
+      )),
+      '"',
+    )),
 
     // Section - Tactus quantifier and spec expressions
 
@@ -1599,7 +1668,7 @@ module.exports = grammar({
         ),
       ),
       'by',
-      field('proof', $.block),
+      field('proof', $._tactic_brace_body),
     )),
 
     // assume(cond) — kept for backwards compat, but prefer sorry in tactic blocks

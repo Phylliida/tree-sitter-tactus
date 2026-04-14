@@ -1,0 +1,819 @@
+================================================================================
+Simple tactic block
+================================================================================
+
+proof fn test() ensures true
+by {
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Inline tactic block
+================================================================================
+
+proof fn test() ensures true by { omega }
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Double slash as content in tactic block (not a comment)
+================================================================================
+
+proof fn test() ensures a > 0
+by {
+    have h : a // b > 0 := by omega
+    exact h
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (binary_expression
+        left: (identifier)
+        right: (integer_literal)))
+    body: (tactic_block)))
+
+================================================================================
+Double slash as comment in Rust context (still works)
+================================================================================
+
+fn main() {
+    let x = 5; // comment
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block
+      (let_declaration
+        pattern: (identifier)
+        value: (integer_literal))
+      (line_comment))))
+
+================================================================================
+Lean line comment with -- in tactic block
+================================================================================
+
+proof fn test() ensures true
+by {
+    -- this is a Lean comment
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Lean line comment -- with closing brace inside
+================================================================================
+
+proof fn test() ensures true
+by {
+    -- comment with } brace inside
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Lean block comment /- -/ in tactic block
+================================================================================
+
+proof fn test() ensures true
+by {
+    /- block comment -/
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Lean block comment with closing brace inside
+================================================================================
+
+proof fn test() ensures true
+by {
+    /- comment with } brace -/
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Nested Lean block comments
+================================================================================
+
+proof fn test() ensures true
+by {
+    /- outer /- inner -/ still outer -/
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Nested block comment with braces inside
+================================================================================
+
+proof fn test() ensures true
+by {
+    /- outer { /- inner } -/ outer } -/
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+String literal in tactic block
+================================================================================
+
+proof fn test() ensures true
+by {
+    have h := "hello world"
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+String literal with closing brace inside
+================================================================================
+
+proof fn test() ensures true
+by {
+    have h := "contains }"
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+String literal with double slash inside
+================================================================================
+
+proof fn test() ensures true
+by {
+    have h := "https://example.com"
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+String literal with escape sequences
+================================================================================
+
+proof fn test() ensures true
+by {
+    have h := "line1\nline2\t\"quoted\""
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Unicode angle brackets in tactic block
+================================================================================
+
+proof fn test() ensures true
+by {
+    intro ⟨a, b⟩
+    exact ⟨b, a⟩
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Unicode logical symbols in tactic block
+================================================================================
+
+proof fn test() ensures true
+by {
+    intro (h : a ∧ b → c ∨ d)
+    exact ¬h
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Unicode focus dot in tactic block
+================================================================================
+
+proof fn test() ensures true
+by {
+    constructor
+    · exact h1
+    · exact h2
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Nested braces in tactic block
+================================================================================
+
+proof fn test() ensures true
+by {
+    match x with
+    | A => { exact h1 }
+    | B => { exact h2 }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Deeply nested braces in tactic block
+================================================================================
+
+proof fn test() ensures true
+by {
+    { { { omega } } }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Mixed // and -- in tactic block
+================================================================================
+
+proof fn test() ensures true
+by {
+    have h : a // b = c
+    -- now prove it
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+All comment and string types combined in tactic block
+================================================================================
+
+proof fn test() ensures true
+by {
+    have s := "str with } and //"
+    -- line comment with } brace
+    /- block /- nested -/ with } -/
+    have h : a // b = c
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Proof block uses tactic body
+================================================================================
+
+fn compute() {
+    proof {
+        have h : true := by omega
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block
+      (expression_statement
+        (proof_block)))))
+
+================================================================================
+Assert by uses tactic body
+================================================================================
+
+fn compute() {
+    assert(x > 0) by {
+        omega
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block
+      (expression_statement
+        (assert_expression
+          condition: (binary_expression
+            left: (identifier)
+            right: (integer_literal)))))))
+
+================================================================================
+Assert by with // in tactic body
+================================================================================
+
+fn compute() {
+    assert(x > 0) by {
+        have h : x // 2 > 0 := by omega
+        exact h
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block
+      (expression_statement
+        (assert_expression
+          condition: (binary_expression
+            left: (identifier)
+            right: (integer_literal)))))))
+
+================================================================================
+Empty tactic block
+================================================================================
+
+proof fn test() ensures true by { }
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Tactic block with only comments
+================================================================================
+
+proof fn test() ensures true
+by {
+    -- TODO: prove this
+    /- later -/
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Multiline string in tactic block
+================================================================================
+
+proof fn test() ensures true
+by {
+    have h := "line1
+line2
+line3 with } brace"
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+String with escaped quote in tactic block
+================================================================================
+
+proof fn test() ensures true
+by {
+    have h := "she said \"hello}\""
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Double slash followed by closing brace on same line in Rust context
+================================================================================
+
+fn main() {
+    let x = 5; // comment }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block
+      (let_declaration
+        pattern: (identifier)
+        value: (integer_literal))
+      (line_comment))))
+
+================================================================================
+Lean induction tactic with pipes
+================================================================================
+
+proof fn test(n: nat) ensures n + 0 == n
+by {
+    induction n with
+    | zero => simp
+    | succ n ih => simp_all
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters
+      (parameter
+        pattern: (identifier)
+        type: (primitive_type)))
+    (ensures_clause
+      (binary_expression
+        left: (binary_expression
+          left: (identifier)
+          right: (integer_literal))
+        right: (identifier)))
+    body: (tactic_block)))
+
+================================================================================
+Lean calc block in tactic
+================================================================================
+
+proof fn test() ensures a = d
+by {
+    calc a = b := by ring
+         _ = c := by omega
+         _ = d := by simp
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (assignment_expression
+        left: (identifier)
+        right: (identifier)))
+    body: (tactic_block)))
+
+================================================================================
+Tactic with nlinarith and sq_nonneg hints
+================================================================================
+
+proof fn lemma_norm_nonneg(re: int, im: int, d: int)
+    requires d <= 0
+    ensures re * re - d * (im * im) >= 0
+by {
+    nlinarith [sq_nonneg re, sq_nonneg im]
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters
+      (parameter
+        pattern: (identifier)
+        type: (primitive_type))
+      (parameter
+        pattern: (identifier)
+        type: (primitive_type))
+      (parameter
+        pattern: (identifier)
+        type: (primitive_type)))
+    (requires_clause
+      (binary_expression
+        left: (identifier)
+        right: (integer_literal)))
+    (ensures_clause
+      (binary_expression
+        left: (binary_expression
+          left: (binary_expression
+            left: (identifier)
+            right: (identifier))
+          right: (binary_expression
+            left: (identifier)
+            right: (parenthesized_expression
+              (binary_expression
+                left: (identifier)
+                right: (identifier)))))
+        right: (integer_literal)))
+    body: (tactic_block)))
+
+================================================================================
+Lean have with nested by block
+================================================================================
+
+proof fn test() ensures true
+by {
+    have h : 1 + 1 = 2 := by { omega }
+    exact h
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Consecutive tactic blocks in different functions
+================================================================================
+
+proof fn test1() ensures true by { omega }
+proof fn test2() ensures true by { simp }
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block))
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Tactic block with single dash and slash chars
+================================================================================
+
+proof fn test() ensures true
+by {
+    have h : a - b = c
+    have g : a / b = d
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Block comment /- with -- inside -/
+================================================================================
+
+proof fn test() ensures true
+by {
+    /- this has -- inside it -/
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Block comment /- with // inside -/
+================================================================================
+
+proof fn test() ensures true
+by {
+    /- this has // inside it -/
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
