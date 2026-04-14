@@ -817,3 +817,173 @@ by {
     (ensures_clause
       (boolean_literal))
     body: (tactic_block)))
+
+================================================================================
+Line comment in struct fields
+================================================================================
+
+struct Foo {
+    x: u32, // field comment
+    y: u32,
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (struct_item
+    name: (type_identifier)
+    body: (field_declaration_list
+      (field_declaration
+        name: (field_identifier)
+        type: (primitive_type))
+      (line_comment)
+      (field_declaration
+        name: (field_identifier)
+        type: (primitive_type)))))
+
+================================================================================
+Line comment in enum variants
+================================================================================
+
+enum Bar {
+    A, // variant comment
+    B,
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (enum_item
+    name: (type_identifier)
+    body: (enum_variant_list
+      (enum_variant
+        name: (identifier))
+      (line_comment)
+      (enum_variant
+        name: (identifier)))))
+
+================================================================================
+Line comment in match arms
+================================================================================
+
+fn test() {
+    match x {
+        1 => foo(), // arm comment
+        _ => bar(),
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block
+      (expression_statement
+        (match_expression
+          value: (identifier)
+          body: (match_block
+            (match_arm
+              pattern: (match_pattern
+                (integer_literal))
+              value: (call_expression
+                function: (identifier)
+                arguments: (arguments)))
+            (line_comment)
+            (match_arm
+              pattern: (match_pattern)
+              value: (call_expression
+                function: (identifier)
+                arguments: (arguments)))))))))
+
+================================================================================
+Line comment in function parameters
+================================================================================
+
+fn params(
+    x: u32, // param comment
+    y: u32,
+) {}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters
+      (parameter
+        pattern: (identifier)
+        type: (primitive_type))
+      (line_comment)
+      (parameter
+        pattern: (identifier)
+        type: (primitive_type)))
+    body: (block)))
+
+================================================================================
+Line comment in function arguments
+================================================================================
+
+fn test() {
+    foo(
+        1, // arg comment
+        2,
+    );
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block
+      (expression_statement
+        (call_expression
+          function: (identifier)
+          arguments: (arguments
+            (integer_literal)
+            (line_comment)
+            (integer_literal)))))))
+
+================================================================================
+Line comment in use list
+================================================================================
+
+use std::{
+    io, // io module
+    fs,
+};
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (use_declaration
+    argument: (scoped_use_list
+      path: (identifier)
+      list: (use_list
+        (identifier)
+        (line_comment)
+        (identifier)))))
+
+================================================================================
+Line comment in impl body
+================================================================================
+
+impl Foo {
+    // method comment
+    fn bar() {}
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (impl_item
+    type: (type_identifier)
+    body: (declaration_list
+      (line_comment)
+      (function_item
+        name: (identifier)
+        parameters: (parameters)
+        body: (block)))))

@@ -576,6 +576,10 @@
         {
           "type": "attribute_item",
           "named": true
+        },
+        {
+          "type": "line_comment",
+          "named": true
         }
       ]
     }
@@ -1753,6 +1757,10 @@
         {
           "type": "_declaration_statement",
           "named": true
+        },
+        {
+          "type": "line_comment",
+          "named": true
         }
       ]
     }
@@ -1962,6 +1970,10 @@
         {
           "type": "enum_variant",
           "named": true
+        },
+        {
+          "type": "line_comment",
+          "named": true
         }
       ]
     }
@@ -2112,6 +2124,10 @@
         },
         {
           "type": "field_declaration",
+          "named": true
+        },
+        {
+          "type": "line_comment",
           "named": true
         }
       ]
@@ -3328,6 +3344,10 @@
       "required": false,
       "types": [
         {
+          "type": "line_comment",
+          "named": true
+        },
+        {
           "type": "match_arm",
           "named": true
         }
@@ -3603,6 +3623,10 @@
         },
         {
           "type": "attribute_item",
+          "named": true
+        },
+        {
+          "type": "line_comment",
           "named": true
         },
         {
@@ -5301,6 +5325,10 @@
         },
         {
           "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "line_comment",
           "named": true
         },
         {

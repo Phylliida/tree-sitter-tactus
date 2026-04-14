@@ -320,7 +320,7 @@ module.exports = grammar({
 
     declaration_list: $ => seq(
       '{',
-      repeat($._declaration_statement),
+      repeat(choice($._declaration_statement, $.line_comment)),
       '}',
     ),
 
@@ -363,8 +363,9 @@ module.exports = grammar({
 
     enum_variant_list: $ => seq(
       '{',
-      sepBy(',', choice(seq(repeat($.attribute_item), $.enum_variant), $.line_comment)),
+      commaSep(seq(repeat($.attribute_item), $.enum_variant), $),
       optional(','),
+      repeat($.line_comment),
       '}',
     ),
 
@@ -383,8 +384,9 @@ module.exports = grammar({
 
     field_declaration_list: $ => seq(
       '{',
-      sepBy(',', choice(seq(repeat($.attribute_item), $.field_declaration), $.line_comment)),
+      commaSep(seq(repeat($.attribute_item), $.field_declaration), $),
       optional(','),
+      repeat($.line_comment),
       '}',
     ),
 
@@ -697,10 +699,9 @@ module.exports = grammar({
 
     use_list: $ => seq(
       '{',
-      sepBy(',', choice(
-        $._use_clause,
-      )),
+      commaSep($._use_clause, $),
       optional(','),
+      repeat($.line_comment),
       '}',
     ),
 
@@ -717,7 +718,7 @@ module.exports = grammar({
 
     parameters: $ => seq(
       '(',
-      sepBy(',', seq(
+      commaSep(seq(
         optional($.attribute_item),
         choice(
           $.parameter,
@@ -725,8 +726,9 @@ module.exports = grammar({
           $.variadic_parameter,
           '_',
           $._type,
-        ))),
+        )), $),
       optional(','),
+      repeat($.line_comment),
       ')',
     ),
 
@@ -1260,8 +1262,9 @@ module.exports = grammar({
 
     arguments: $ => seq(
       '(',
-      sepBy(',', seq(repeat($.attribute_item), $._expression)),
+      commaSep(seq(repeat($.attribute_item), $._expression), $),
       optional(','),
+      repeat($.line_comment),
       ')',
     ),
 
@@ -1382,7 +1385,7 @@ module.exports = grammar({
     match_block: $ => seq(
       '{',
       optional(seq(
-        repeat($.match_arm),
+        repeat(choice($.match_arm, $.line_comment)),
         alias($.last_match_arm, $.match_arm),
       )),
       '}',
@@ -2001,4 +2004,19 @@ function sepBy1(sep, rule) {
  */
 function sepBy(sep, rule) {
   return optional(sepBy1(sep, rule));
+}
+
+/**
+ * Like sepBy/sepBy1 but allows line_comment between and around items.
+ * Used for comma-separated lists where // comments can appear between items.
+ */
+function commaSep1(rule, $) {
+  return seq(
+    repeat($.line_comment), rule,
+    repeat(seq(',', repeat($.line_comment), rule)),
+  );
+}
+
+function commaSep(rule, $) {
+  return optional(commaSep1(rule, $));
 }
