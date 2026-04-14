@@ -6955,17 +6955,28 @@
       ]
     },
     "range_expression": {
-      "type": "PREC_LEFT",
-      "value": 1,
-      "content": {
-        "type": "CHOICE",
-        "members": [
-          {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "PREC_LEFT",
+          "value": 1,
+          "content": {
             "type": "SEQ",
             "members": [
               {
                 "type": "SYMBOL",
                 "name": "_expression"
+              },
+              {
+                "type": "REPEAT",
+                "content": {
+                  "type": "PREC_DYNAMIC",
+                  "value": -100,
+                  "content": {
+                    "type": "SYMBOL",
+                    "name": "line_comment"
+                  }
+                }
               },
               {
                 "type": "CHOICE",
@@ -6996,8 +7007,12 @@
                 "name": "_expression"
               }
             ]
-          },
-          {
+          }
+        },
+        {
+          "type": "PREC_LEFT",
+          "value": 1,
+          "content": {
             "type": "SEQ",
             "members": [
               {
@@ -7009,8 +7024,12 @@
                 "value": ".."
               }
             ]
-          },
-          {
+          }
+        },
+        {
+          "type": "PREC_LEFT",
+          "value": 1,
+          "content": {
             "type": "SEQ",
             "members": [
               {
@@ -7029,13 +7048,17 @@
                 "name": "_expression"
               }
             ]
-          },
-          {
+          }
+        },
+        {
+          "type": "PREC_LEFT",
+          "value": 1,
+          "content": {
             "type": "STRING",
             "value": ".."
           }
-        ]
-      }
+        }
+      ]
     },
     "unary_expression": {
       "type": "PREC",
@@ -8493,8 +8516,12 @@
           {
             "type": "REPEAT",
             "content": {
-              "type": "SYMBOL",
-              "name": "line_comment"
+              "type": "PREC_DYNAMIC",
+              "value": 100,
+              "content": {
+                "type": "SYMBOL",
+                "name": "line_comment"
+              }
             }
           },
           {
@@ -8729,6 +8756,17 @@
           "content": {
             "type": "SYMBOL",
             "name": "_expression"
+          }
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "PREC_DYNAMIC",
+            "value": 5,
+            "content": {
+              "type": "SYMBOL",
+              "name": "line_comment"
+            }
           }
         },
         {
@@ -9019,12 +9057,19 @@
               {
                 "type": "SYMBOL",
                 "name": "decreases_clause"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "line_comment"
               }
             ]
+          }
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "PREC_DYNAMIC",
+            "value": 100,
+            "content": {
+              "type": "SYMBOL",
+              "name": "line_comment"
+            }
           }
         },
         {
@@ -9077,12 +9122,19 @@
               {
                 "type": "SYMBOL",
                 "name": "decreases_clause"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "line_comment"
               }
             ]
+          }
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "PREC_DYNAMIC",
+            "value": 100,
+            "content": {
+              "type": "SYMBOL",
+              "name": "line_comment"
+            }
           }
         },
         {
@@ -9169,10 +9221,6 @@
               {
                 "type": "SYMBOL",
                 "name": "decreases_clause"
-              },
-              {
-                "type": "SYMBOL",
-                "name": "line_comment"
               }
             ]
           }
@@ -12063,6 +12111,40 @@
     ],
     [
       "for_expression",
+      "field_expression"
+    ],
+    [
+      "range_expression",
+      "array_expression",
+      "field_expression"
+    ],
+    [
+      "range_expression",
+      "array_expression"
+    ],
+    [
+      "range_expression",
+      "match_expression"
+    ],
+    [
+      "range_expression",
+      "arguments"
+    ],
+    [
+      "range_expression",
+      "if_expression"
+    ],
+    [
+      "range_expression",
+      "while_expression"
+    ],
+    [
+      "range_expression",
+      "for_expression"
+    ],
+    [
+      "range_expression",
+      "arguments",
       "field_expression"
     ],
     [

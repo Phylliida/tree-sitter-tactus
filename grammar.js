@@ -152,6 +152,14 @@ module.exports = grammar({
     [$.match_expression, $.field_expression, $.range_expression],
     [$.match_expression, $.field_expression, $.binary_expression],
     [$.for_expression, $.field_expression],
+    [$.range_expression, $.array_expression, $.field_expression],
+    [$.range_expression, $.array_expression],
+    [$.range_expression, $.match_expression],
+    [$.range_expression, $.arguments],
+    [$.range_expression, $.if_expression],
+    [$.range_expression, $.while_expression],
+    [$.range_expression, $.for_expression],
+    [$.range_expression, $.arguments, $.field_expression],
     // tuple_expression vs enum_variant_list when line_comment follows comma
     [$.tuple_expression],
     // Tactic block: _user_tactic is _expression, inheriting Rust expr conflicts
@@ -1202,12 +1210,12 @@ module.exports = grammar({
       field('name', $._type_identifier),
     ),
 
-    range_expression: $ => prec.left(PREC.range, choice(
-      seq($._expression, repeat(prec.dynamic(-5, $.line_comment)), choice('..', '...', '..='), repeat($.line_comment), $._expression),
-      seq($._expression, '..'),
-      seq('..', repeat($.line_comment), $._expression),
-      '..',
-    )),
+    range_expression: $ => choice(
+      prec.left(PREC.range, seq($._expression, repeat(prec.dynamic(-100, $.line_comment)), choice('..', '...', '..='), repeat($.line_comment), $._expression)),
+      prec.left(PREC.range, seq($._expression, '..')),
+      prec.left(PREC.range, seq('..', repeat($.line_comment), $._expression)),
+      prec.left(PREC.range, '..'),
+    ),
 
     unary_expression: $ => prec(PREC.unary, seq(
       choice('-', '*', '!'),
@@ -1385,7 +1393,7 @@ module.exports = grammar({
       'if',
       repeat($.line_comment),
       field('condition', $._condition),
-      repeat(prec.dynamic(5, $.line_comment)),
+      repeat(prec.dynamic(100, $.line_comment)),
       field('consequence', $.block),
       optional(field('alternative', $.else_clause)),
     )),
@@ -1425,6 +1433,7 @@ module.exports = grammar({
       'match',
       repeat($.line_comment),
       field('value', $._expression),
+      repeat(prec.dynamic(5, $.line_comment)),
       field('body', $.match_block),
     ),
 
@@ -1468,7 +1477,8 @@ module.exports = grammar({
       repeat($.line_comment),
       field('condition', $._condition),
       // Tactus: loop specifications
-      repeat(choice($.invariant_clause, $.decreases_clause, $.line_comment)),
+      repeat(choice($.invariant_clause, $.decreases_clause)),
+      repeat(prec.dynamic(100, $.line_comment)),
       field('body', $.block),
     ),
 
@@ -1476,7 +1486,8 @@ module.exports = grammar({
       optional(seq($.label, ':')),
       'loop',
       // Tactus: loop specifications
-      repeat(choice($.invariant_clause, $.decreases_clause, $.line_comment)),
+      repeat(choice($.invariant_clause, $.decreases_clause)),
+      repeat(prec.dynamic(100, $.line_comment)),
       field('body', $.block),
     ),
 
@@ -1489,7 +1500,7 @@ module.exports = grammar({
       repeat($.line_comment),
       field('value', $._expression),
       // Tactus: loop specifications
-      repeat(choice($.invariant_clause, $.decreases_clause, $.line_comment)),
+      repeat(choice($.invariant_clause, $.decreases_clause)),
       field('body', $.block),
     ),
 
@@ -1538,8 +1549,8 @@ module.exports = grammar({
 
     field_expression: $ => prec(PREC.field, seq(
       field('value', $._expression),
-      repeat(prec.dynamic(-5, $.line_comment)),
       '.',
+      repeat($.line_comment),
       field('field', choice(
         $._field_identifier,
         $.integer_literal,
