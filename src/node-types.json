@@ -661,12 +661,36 @@
         ]
       },
       "proof": {
-        "multiple": false,
+        "multiple": true,
         "required": false,
         "types": [
           {
-            "type": "block",
-            "named": true
+            "type": "\"",
+            "named": false
+          },
+          {
+            "type": "-",
+            "named": false
+          },
+          {
+            "type": "-/",
+            "named": false
+          },
+          {
+            "type": "/",
+            "named": false
+          },
+          {
+            "type": "/-",
+            "named": false
+          },
+          {
+            "type": "{",
+            "named": false
+          },
+          {
+            "type": "}",
+            "named": false
           }
         ]
       }
@@ -3641,17 +3665,7 @@
   {
     "type": "proof_block",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "block",
-          "named": true
-        }
-      ]
-    }
+    "fields": {}
   },
   {
     "type": "qualified_type",
@@ -4371,17 +4385,7 @@
   {
     "type": "tactic_block",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": false,
-      "required": true,
-      "types": [
-        {
-          "type": "block",
-          "named": true
-        }
-      ]
-    }
+    "fields": {}
   },
   {
     "type": "tactus_block",
@@ -5644,6 +5648,10 @@
     "named": false
   },
   {
+    "type": "-/",
+    "named": false
+  },
+  {
     "type": "-=",
     "named": false
   },
@@ -5673,6 +5681,10 @@
   },
   {
     "type": "/*",
+    "named": false
+  },
+  {
+    "type": "/-",
     "named": false
   },
   {

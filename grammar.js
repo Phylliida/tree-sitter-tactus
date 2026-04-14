@@ -1509,7 +1509,7 @@ module.exports = grammar({
     // Tactus: proof block (ghost code inside exec functions)
     proof_block: $ => seq(
       'proof',
-      $.block,
+      $._tactic_brace_body,
     ),
 
     block: $ => seq(
@@ -1534,10 +1534,69 @@ module.exports = grammar({
     // within tactic blocks.
 
     // by { ... } — tactic proof block
+    // Uses _tactic_brace_body: content is Lean syntax, not Rust.
+    // // comments are handled by the line_comment extra (which consumes to EOL).
+    // Users must not use // (Lean integer division) in tactic blocks;
+    // use Nat.div or Int.div instead.
     tactic_block: $ => seq(
       'by',
-      $.block,
+      $._tactic_brace_body,
     ),
+
+    // Tactic brace body: { ... } where content is Lean, not Rust.
+    // Handles Lean-specific syntax: -- line comments, /- -/ block comments,
+    // "..." strings, Unicode (⟨⟩·∀∃), and nested { } braces.
+    // // is still consumed as a line_comment extra — this is intentional.
+    _tactic_brace_body: $ => seq(
+      '{',
+      repeat($._tactic_item),
+      '}',
+    ),
+
+    _tactic_item: $ => choice(
+      // Nested balanced braces (Lean uses { } for match, do, etc.)
+      seq('{', repeat($._tactic_item), '}'),
+      // Lean line comment: -- to end of line (consumes } on same line)
+      token(seq('--', /[^\n]*/)),
+      // Lean nestable block comment: /- ... -/
+      $._tactic_lean_block_comment,
+      // String literal: "..." with \ escapes (prevents } inside strings from closing block)
+      $._tactic_string_literal,
+      // Bulk content: anything not a brace, dash, slash, or quote.
+      // Matches Unicode like ⟨⟩·∀∃∧∨→↔≤≥≠ in one token.
+      /[^{}\-\/"]+/,
+      // Single dash (not part of -- comment); low prec so -- is preferred
+      token(prec(-1, '-')),
+      // Single slash (not part of /-); low prec so /- is preferred
+      token(prec(-1, '/')),
+      // Single quote (unclosed string fallback)
+      token(prec(-1, '"')),
+    ),
+
+    // Lean nestable block comment: /- ... -/
+    _tactic_lean_block_comment: $ => seq(
+      '/-',
+      repeat($._tactic_lean_block_comment_content),
+      '-/',
+    ),
+
+    _tactic_lean_block_comment_content: $ => choice(
+      $._tactic_lean_block_comment,   // nested /- -/
+      /[^-\/]+/,                       // bulk: anything not - or /
+      token(prec(-1, '-')),            // single - (lexer prefers '-/' over '-')
+      token(prec(-1, '/')),            // single / (lexer prefers '/-' over '/')
+    ),
+
+    // Lean string literal: "..." with \ escape sequences.
+    // Wrapped in token() so it's a single opaque token — no extras inside.
+    _tactic_string_literal: $ => token(seq(
+      '"',
+      repeat(choice(
+        /[^"\\]/,    // any char except " and \ (including newlines, {, }, etc.)
+        /\\./,       // escape sequence: \ followed by any char
+      )),
+      '"',
+    )),
 
     // Section - Tactus quantifier and spec expressions
 
@@ -1599,7 +1658,7 @@ module.exports = grammar({
         ),
       ),
       'by',
-      field('proof', $.block),
+      field('proof', $._tactic_brace_body),
     )),
 
     // assume(cond) — kept for backwards compat, but prefer sorry in tactic blocks
