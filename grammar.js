@@ -129,6 +129,8 @@ module.exports = grammar({
     [$.declaration_list, $.function_item],
     // assert(expr)/forall shared prefix between block and non-block variants
     [$.assert_expression, $._assert_by_expression],
+    // range_expression full vs half-open when line_comment follows ..
+    [$.range_expression, $.for_expression],
     // Tactic block: _user_tactic is _expression, inheriting Rust expr conflicts
   ],
 
@@ -399,12 +401,13 @@ module.exports = grammar({
 
     ordered_field_declaration_list: $ => seq(
       '(',
-      sepBy(',', seq(
+      commaSep(seq(
         repeat($.attribute_item),
         optional($.visibility_modifier),
         field('type', $._type),
-      )),
+      ), $),
       optional(','),
+      repeat($.line_comment),
       ')',
     ),
 
@@ -425,10 +428,12 @@ module.exports = grammar({
       'const',
       field('name', $.identifier),
       ':',
+      repeat($.line_comment),
       field('type', $._type),
       optional(
         seq(
           '=',
+          repeat($.line_comment),
           field('value', $._expression),
         ),
       ),
@@ -445,9 +450,11 @@ module.exports = grammar({
       optional($.mutable_specifier),
       field('name', $.identifier),
       ':',
+      repeat($.line_comment),
       field('type', $._type),
       optional(seq(
         '=',
+        repeat($.line_comment),
         field('value', $._expression),
       )),
       ';',
@@ -460,6 +467,7 @@ module.exports = grammar({
       field('type_parameters', optional($.type_parameters)),
       optional($.where_clause),
       '=',
+      repeat($.line_comment),
       field('type', $._type),
       optional($.where_clause),
       ';',
@@ -473,7 +481,7 @@ module.exports = grammar({
       field('name', choice($.identifier, $.metavariable)),
       field('type_parameters', optional($.type_parameters)),
       field('parameters', $.parameters),
-      optional(seq('->', field('return_type', choice($.named_return_type, $._type)))),
+      optional(seq('->', repeat($.line_comment), field('return_type', choice($.named_return_type, $._type)))),
       // Tactus spec clauses and where clause can appear in any order
       repeat(choice(
         $.requires_clause,
@@ -481,6 +489,7 @@ module.exports = grammar({
         $.recommends_clause,
         $.decreases_clause,
         $.where_clause,
+        $.line_comment,
       )),
       // Body is either a Rust block (exec/spec fns) or a tactic block (proof fns)
       field('body', choice($.block, $.tactic_block)),
@@ -493,13 +502,14 @@ module.exports = grammar({
       field('name', choice($.identifier, $.metavariable)),
       field('type_parameters', optional($.type_parameters)),
       field('parameters', $.parameters),
-      optional(seq('->', field('return_type', choice($.named_return_type, $._type)))),
+      optional(seq('->', repeat($.line_comment), field('return_type', choice($.named_return_type, $._type)))),
       repeat(choice(
         $.requires_clause,
         $.ensures_clause,
         $.recommends_clause,
         $.decreases_clause,
         $.where_clause,
+        $.line_comment,
       )),
       ';',
     ),
@@ -525,8 +535,9 @@ module.exports = grammar({
     where_clause: $ => prec.right(seq(
       'where',
       optional(seq(
-        sepBy1(',', $.where_predicate),
+        commaSep1($.where_predicate, $),
         optional(','),
+        repeat($.line_comment),
       )),
     )),
 
@@ -586,11 +597,11 @@ module.exports = grammar({
 
     trait_bounds: $ => seq(
       ':',
-      sepBy1('+', choice(
+      sep1WithComments('+', choice(
         $._type,
         $.lifetime,
         $.higher_ranked_trait_bound,
-      )),
+      ), $),
     ),
 
     higher_ranked_trait_bound: $ => seq(
@@ -606,7 +617,7 @@ module.exports = grammar({
 
     type_parameters: $ => prec(1, seq(
       '<',
-      sepBy1(',', seq(
+      commaSep1(seq(
         repeat($.attribute_item),
         choice(
           $.metavariable,
@@ -614,8 +625,9 @@ module.exports = grammar({
           $.lifetime_parameter,
           $.const_parameter,
         ),
-      )),
+      ), $),
       optional(','),
+      repeat($.line_comment),
       '>',
     )),
 
@@ -663,10 +675,12 @@ module.exports = grammar({
       field('pattern', $._pattern),
       optional(seq(
         ':',
+        repeat($.line_comment),
         field('type', $._type),
       )),
       optional(seq(
         '=',
+        repeat($.line_comment),
         field('value', $._expression),
       )),
       optional(seq(
@@ -794,31 +808,31 @@ module.exports = grammar({
 
     requires_clause: $ => seq(
       'requires',
-      sepBy1(',', $._expression),
+      commaSep1($._expression, $),
       optional(','),
     ),
 
     ensures_clause: $ => seq(
       'ensures',
-      sepBy1(',', $._expression),
+      commaSep1($._expression, $),
       optional(','),
     ),
 
     recommends_clause: $ => seq(
       'recommends',
-      sepBy1(',', $._expression),
+      commaSep1($._expression, $),
       optional(','),
     ),
 
     decreases_clause: $ => seq(
       'decreases',
-      sepBy1(',', $._expression),
+      commaSep1($._expression, $),
       optional(','),
     ),
 
     invariant_clause: $ => seq(
       choice('invariant', 'invariant_except_break'),
-      sepBy1(',', $._expression),
+      commaSep1($._expression, $),
       optional(','),
     ),
 
@@ -827,7 +841,7 @@ module.exports = grammar({
     broadcast_use_item: $ => seq(
       'broadcast',
       'use',
-      sepBy1(',', $._path),
+      commaSep1($._path, $),
       optional(','),
       ';',
     ),
@@ -838,7 +852,7 @@ module.exports = grammar({
       'group',
       field('name', $._type_identifier),
       '{',
-      sepBy(',', $._path),
+      commaSep($._path, $),
       optional(','),
       '}',
     ),
@@ -895,8 +909,9 @@ module.exports = grammar({
     for_lifetimes: $ => seq(
       'for',
       '<',
-      sepBy1(',', $.lifetime),
+      commaSep1($.lifetime, $),
       optional(','),
+      repeat($.line_comment),
       '>',
     ),
 
@@ -920,8 +935,9 @@ module.exports = grammar({
 
     tuple_type: $ => seq(
       '(',
-      sepBy1(',', $._type),
+      commaSep1($._type, $),
       optional(','),
+      repeat($.line_comment),
       ')',
     ),
 
@@ -964,20 +980,18 @@ module.exports = grammar({
     use_bounds: $ => seq(
       'use',
       token(prec(1, '<')),
-      sepBy(
-        ',',
-        choice(
-          $.lifetime,
-          $._type_identifier,
-        ),
-      ),
+      commaSep(choice(
+        $.lifetime,
+        $._type_identifier,
+      ), $),
       optional(','),
+      repeat($.line_comment),
       '>',
     ),
 
     type_arguments: $ => seq(
       token(prec(1, '<')),
-      sepBy1(',', seq(
+      commaSep1(seq(
         choice(
           $._type,
           $.type_binding,
@@ -986,8 +1000,9 @@ module.exports = grammar({
           $.block,
         ),
         optional($.trait_bounds),
-      )),
+      ), $),
       optional(','),
+      repeat($.line_comment),
       '>',
     ),
 
@@ -1172,14 +1187,15 @@ module.exports = grammar({
     ),
 
     range_expression: $ => prec.left(PREC.range, choice(
-      seq($._expression, choice('..', '...', '..='), $._expression),
+      seq($._expression, repeat($.line_comment), choice('..', '...', '..='), repeat($.line_comment), $._expression),
       seq($._expression, '..'),
-      seq('..', $._expression),
+      seq('..', repeat($.line_comment), $._expression),
       '..',
     )),
 
     unary_expression: $ => prec(PREC.unary, seq(
       choice('-', '*', '!'),
+      repeat($.line_comment),
       $._expression,
     )),
 
@@ -1194,6 +1210,7 @@ module.exports = grammar({
         seq('raw', choice('const', $.mutable_specifier)),
         optional($.mutable_specifier),
       ),
+      repeat($.line_comment),
       field('value', $._expression),
     )),
 
@@ -1216,12 +1233,14 @@ module.exports = grammar({
           field('left', $._expression),
           // @ts-ignore
           field('operator', operator),
+          repeat($.line_comment),
           field('right', $._expression),
         ))),
         // Tactus: right-associative implication operators
         prec.right(PREC.implies, seq(
           field('left', $._expression),
           field('operator', choice('==>', 'implies')),
+          repeat($.line_comment),
           field('right', $._expression),
         )),
       );
@@ -1230,12 +1249,14 @@ module.exports = grammar({
     assignment_expression: $ => prec.left(PREC.assign, seq(
       field('left', $._expression),
       '=',
+      repeat($.line_comment),
       field('right', $._expression),
     )),
 
     compound_assignment_expr: $ => prec.left(PREC.assign, seq(
       field('left', $._expression),
       field('operator', choice('+=', '-=', '*=', '/=', '%=', '&=', '|=', '^=', '<<=', '>>=')),
+      repeat($.line_comment),
       field('right', $._expression),
     )),
 
@@ -1246,12 +1267,12 @@ module.exports = grammar({
     )),
 
     return_expression: $ => choice(
-      prec.left(seq('return', $._expression)),
+      prec.left(seq('return', repeat($.line_comment), $._expression)),
       prec(-1, 'return'),
     ),
 
     yield_expression: $ => choice(
-      prec.left(seq('yield', $._expression)),
+      prec.left(seq('yield', repeat($.line_comment), $._expression)),
       prec(-1, 'yield'),
     ),
 
@@ -1278,8 +1299,9 @@ module.exports = grammar({
           field('length', $._expression),
         ),
         seq(
-          sepBy(',', seq(repeat($.attribute_item), $._expression)),
+          commaSep(seq(repeat($.attribute_item), $._expression), $),
           optional(','),
+          repeat($.line_comment),
         ),
       ),
       ']',
@@ -1314,12 +1336,13 @@ module.exports = grammar({
 
     field_initializer_list: $ => seq(
       '{',
-      sepBy(',', choice(
+      commaSep(choice(
         $.shorthand_field_initializer,
         $.field_initializer,
         $.base_field_initializer,
-      )),
+      ), $),
       optional(','),
+      repeat($.line_comment),
       '}',
     ),
 
@@ -1342,6 +1365,7 @@ module.exports = grammar({
 
     if_expression: $ => prec.right(seq(
       'if',
+      repeat($.line_comment),
       field('condition', $._condition),
       field('consequence', $.block),
       optional(field('alternative', $.else_clause)),
@@ -1351,6 +1375,7 @@ module.exports = grammar({
       'let',
       field('pattern', $._pattern),
       '=',
+      repeat($.line_comment),
       field('value', prec.left(PREC.and, $._expression)),
     ),
 
@@ -1370,6 +1395,7 @@ module.exports = grammar({
 
     else_clause: $ => seq(
       'else',
+      repeat($.line_comment),
       choice(
         $.block,
         $.if_expression,
@@ -1395,6 +1421,7 @@ module.exports = grammar({
       repeat(choice($.attribute_item, $.inner_attribute_item)),
       field('pattern', $.match_pattern),
       '=>',
+      repeat($.line_comment),
       choice(
         seq(field('value', $._expression), ','),
         field('value', prec(1, $._expression_ending_with_block)),
@@ -1405,6 +1432,7 @@ module.exports = grammar({
       repeat(choice($.attribute_item, $.inner_attribute_item)),
       field('pattern', $.match_pattern),
       '=>',
+      repeat($.line_comment),
       field('value', $._expression),
       optional(','),
     ),
@@ -1417,9 +1445,10 @@ module.exports = grammar({
     while_expression: $ => seq(
       optional(seq($.label, ':')),
       'while',
+      repeat($.line_comment),
       field('condition', $._condition),
       // Tactus: loop specifications
-      repeat(choice($.invariant_clause, $.decreases_clause)),
+      repeat(choice($.invariant_clause, $.decreases_clause, $.line_comment)),
       field('body', $.block),
     ),
 
@@ -1427,18 +1456,20 @@ module.exports = grammar({
       optional(seq($.label, ':')),
       'loop',
       // Tactus: loop specifications
-      repeat(choice($.invariant_clause, $.decreases_clause)),
+      repeat(choice($.invariant_clause, $.decreases_clause, $.line_comment)),
       field('body', $.block),
     ),
 
     for_expression: $ => seq(
       optional(seq($.label, ':')),
       'for',
+      repeat($.line_comment),
       field('pattern', $._pattern),
       'in',
+      repeat($.line_comment),
       field('value', $._expression),
       // Tactus: loop specifications
-      repeat(choice($.invariant_clause, $.decreases_clause)),
+      repeat(choice($.invariant_clause, $.decreases_clause, $.line_comment)),
       field('body', $.block),
     ),
 
@@ -1454,7 +1485,7 @@ module.exports = grammar({
       field('parameters', $.closure_parameters),
       choice(
         seq(
-          optional(seq('->', field('return_type', $._type))),
+          optional(seq('->', repeat($.line_comment), field('return_type', $._type))),
           field('body', $.block),
         ),
         field('body', choice($._expression, '_')),
@@ -1463,10 +1494,11 @@ module.exports = grammar({
 
     closure_parameters: $ => seq(
       '|',
-      sepBy(',', choice(
+      commaSep(choice(
         $._pattern,
         $.parameter,
-      )),
+      ), $),
+      repeat($.line_comment),
       '|',
     ),
 
@@ -1718,15 +1750,17 @@ module.exports = grammar({
 
     tuple_pattern: $ => seq(
       '(',
-      sepBy(',', choice($._pattern, $.closure_expression)),
+      commaSep(choice($._pattern, $.closure_expression), $),
       optional(','),
+      repeat($.line_comment),
       ')',
     ),
 
     slice_pattern: $ => seq(
       '[',
-      sepBy(',', $._pattern),
+      commaSep($._pattern, $),
       optional(','),
+      repeat($.line_comment),
       ']',
     ),
 
@@ -1737,8 +1771,9 @@ module.exports = grammar({
         alias($.generic_type_with_turbofish, $.generic_type),
       )),
       '(',
-      sepBy(',', $._pattern),
+      commaSep($._pattern, $),
       optional(','),
+      repeat($.line_comment),
       ')',
     ),
 
@@ -1748,8 +1783,9 @@ module.exports = grammar({
         $.scoped_type_identifier,
       )),
       '{',
-      sepBy(',', choice($.field_pattern, $.remaining_field_pattern)),
+      commaSep(choice($.field_pattern, $.remaining_field_pattern), $),
       optional(','),
+      repeat($.line_comment),
       '}',
     ),
 
@@ -2019,4 +2055,15 @@ function commaSep1(rule, $) {
 
 function commaSep(rule, $) {
   return optional(commaSep1(rule, $));
+}
+
+/**
+ * Like commaSep1 but with an arbitrary separator.
+ * Used for +-separated trait bounds, etc.
+ */
+function sep1WithComments(sep, rule, $) {
+  return seq(
+    repeat($.line_comment), rule,
+    repeat(seq(sep, repeat($.line_comment), rule)),
+  );
 }

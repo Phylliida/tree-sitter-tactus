@@ -819,6 +819,372 @@ by {
     body: (tactic_block)))
 
 ================================================================================
+Double slash right after opening brace in tactic
+================================================================================
+
+proof fn test() ensures true
+by {// right after brace
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Double slash right before closing brace in tactic
+================================================================================
+
+proof fn test() ensures true
+by {
+    omega // right before brace}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Multiple double slashes on one line in tactic
+================================================================================
+
+proof fn test() ensures true
+by {
+    have h : a // b // c
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Empty Lean line comment
+================================================================================
+
+proof fn test() ensures true
+by {
+    --
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Empty Lean block comment
+================================================================================
+
+proof fn test() ensures true
+by {
+    /- -/
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Multi-line Lean block comment
+================================================================================
+
+proof fn test() ensures true
+by {
+    /- multi
+    line
+    comment -/
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+String with escaped backslash before quote in tactic
+================================================================================
+
+proof fn test() ensures true
+by {
+    have h := "test\\\""
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Adjacent block comments in tactic
+================================================================================
+
+proof fn test() ensures true
+by {
+    /- first -//- second -/
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Deeply nested block comments with braces
+================================================================================
+
+proof fn test() ensures true
+by {
+    /- /- /- deeply } nested -/ } -/ } -/
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters)
+    (ensures_clause
+      (boolean_literal))
+    body: (tactic_block)))
+
+================================================================================
+Doc comment in Rust context
+================================================================================
+
+/// Doc comment
+fn doc_fn() {}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (line_comment
+    outer: (outer_doc_comment_marker)
+    doc: (doc_comment))
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block)))
+
+================================================================================
+Multiple line comments in a row
+================================================================================
+
+// first
+// second
+// third
+fn after_comments() {}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (line_comment)
+  (line_comment)
+  (line_comment)
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block)))
+
+================================================================================
+Line comment at start of file
+================================================================================
+
+// start of file
+fn main() {}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (line_comment)
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block)))
+
+================================================================================
+Line comment in trait body
+================================================================================
+
+trait Foo {
+    // method comment
+    fn bar();
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (trait_item
+    name: (type_identifier)
+    body: (declaration_list
+      (line_comment)
+      (function_signature_item
+        name: (identifier)
+        parameters: (parameters)))))
+
+================================================================================
+Line comment in type parameters
+================================================================================
+
+fn generic<
+    T, // type param
+    U,
+>() {}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier))
+      (line_comment)
+      (type_parameter
+        name: (type_identifier)))
+    parameters: (parameters)
+    body: (block)))
+
+================================================================================
+Line comment in struct literal
+================================================================================
+
+fn test() {
+    let s = Foo {
+        x: 1, // field init
+        y: 2,
+    };
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block
+      (let_declaration
+        pattern: (identifier)
+        value: (struct_expression
+          name: (type_identifier)
+          body: (field_initializer_list
+            (field_initializer
+              field: (field_identifier)
+              value: (integer_literal))
+            (line_comment)
+            (field_initializer
+              field: (field_identifier)
+              value: (integer_literal))))))))
+
+================================================================================
+Line comment in tuple struct
+================================================================================
+
+struct Tuple(
+    u32, // first field
+    u32,
+);
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (struct_item
+    name: (type_identifier)
+    body: (ordered_field_declaration_list
+      type: (primitive_type)
+      (line_comment)
+      type: (primitive_type))))
+
+================================================================================
+Line comment in closure parameters
+================================================================================
+
+fn test() {
+    let f = |x: u32, // comment
+             y: u32| x + y;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block
+      (let_declaration
+        pattern: (identifier)
+        value: (closure_expression
+          parameters: (closure_parameters
+            (parameter
+              pattern: (identifier)
+              type: (primitive_type))
+            (line_comment)
+            (parameter
+              pattern: (identifier)
+              type: (primitive_type)))
+          body: (binary_expression
+            left: (identifier)
+            right: (identifier)))))))
+
+================================================================================
 Line comment in struct fields
 ================================================================================
 
@@ -987,3 +1353,949 @@ impl Foo {
         name: (identifier)
         parameters: (parameters)
         body: (block)))))
+
+================================================================================
+Line comment in trait bounds
+================================================================================
+
+fn bounded<T: Clone + // bound comment
+    Send>() {}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    type_parameters: (type_parameters
+      (type_parameter
+        name: (type_identifier)
+        bounds: (trait_bounds
+          (type_identifier)
+          (line_comment)
+          (type_identifier))))
+    parameters: (parameters)
+    body: (block)))
+
+================================================================================
+Line comment after = in let
+================================================================================
+
+fn test() {
+    let x = // assign comment
+        5;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block
+      (let_declaration
+        pattern: (identifier)
+        (line_comment)
+        value: (integer_literal)))))
+
+================================================================================
+Line comment after return
+================================================================================
+
+fn ret() -> u32 {
+    return // return comment
+        42;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    return_type: (primitive_type)
+    body: (block
+      (expression_statement
+        (return_expression
+          (line_comment)
+          (integer_literal))))))
+
+================================================================================
+Line comment between if and condition
+================================================================================
+
+fn test() {
+    if // comment
+        true {}
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block
+      (expression_statement
+        (if_expression
+          (line_comment)
+          condition: (boolean_literal)
+          consequence: (block))))))
+
+================================================================================
+Line comment in binary expression
+================================================================================
+
+fn test() {
+    let x = 1 + // mid binary
+        2;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block
+      (let_declaration
+        pattern: (identifier)
+        value: (binary_expression
+          left: (integer_literal)
+          (line_comment)
+          right: (integer_literal))))))
+
+================================================================================
+Line comment after => in match arm
+================================================================================
+
+fn test() {
+    match 1 {
+        1 => // arm comment
+            2,
+        _ => 3,
+    };
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block
+      (expression_statement
+        (match_expression
+          value: (integer_literal)
+          body: (match_block
+            (match_arm
+              pattern: (match_pattern
+                (integer_literal))
+              (line_comment)
+              value: (integer_literal))
+            (match_arm
+              pattern: (match_pattern)
+              value: (integer_literal)))))
+      (empty_statement))))
+
+================================================================================
+Line comment after : in let type annotation
+================================================================================
+
+fn test() {
+    let x: // type comment
+        u32 = 5;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    body: (block
+      (let_declaration
+        pattern: (identifier)
+        (line_comment)
+        type: (primitive_type)
+        value: (integer_literal)))))
+
+================================================================================
+Line comment after -> return type
+================================================================================
+
+fn ret_type() -> // return type comment
+    u32 { 42 }
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    name: (identifier)
+    parameters: (parameters)
+    (line_comment)
+    return_type: (primitive_type)
+    body: (block
+      (integer_literal))))
+
+================================================================================
+Line comment between spec clauses
+================================================================================
+
+proof fn test(x: int)
+    requires x > 0,
+    // comment between clauses
+    ensures x + 1 > 0
+by { omega }
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    name: (identifier)
+    parameters: (parameters
+      (parameter
+        pattern: (identifier)
+        type: (primitive_type)))
+    (requires_clause
+      (binary_expression
+        left: (identifier)
+        right: (integer_literal)))
+    (line_comment)
+    (ensures_clause
+      (binary_expression
+        left: (binary_expression
+          left: (identifier)
+          right: (integer_literal))
+        right: (integer_literal)))
+    body: (tactic_block)))
+
+================================================================================
+Line comment in type arguments
+================================================================================
+
+fn test() {
+    let x: Vec<u32, // comment
+        u64> = v;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (let_declaration
+        (identifier)
+        (generic_type
+          (type_identifier)
+          (type_arguments
+            (primitive_type)
+            (line_comment)
+            (primitive_type)))
+        (identifier)))))
+
+================================================================================
+Line comment in where clause
+================================================================================
+
+fn test<T>() where
+    T: Clone, // where comment
+    T: Send,
+{}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (type_parameters
+      (type_parameter
+        (type_identifier)))
+    (parameters)
+    (where_clause
+      (where_predicate
+        (type_identifier)
+        (trait_bounds
+          (type_identifier)))
+      (line_comment)
+      (where_predicate
+        (type_identifier)
+        (trait_bounds
+          (type_identifier))))
+    (block)))
+
+================================================================================
+Line comment after = in assignment
+================================================================================
+
+fn test() {
+    let mut x = 0;
+    x = // comment
+        5;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (let_declaration
+        (mutable_specifier)
+        (identifier)
+        (integer_literal))
+      (expression_statement
+        (assignment_expression
+          (identifier)
+          (line_comment)
+          (integer_literal))))))
+
+================================================================================
+Line comment in compound assignment
+================================================================================
+
+fn test() {
+    let mut x = 0;
+    x += // comment
+        5;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (let_declaration
+        (mutable_specifier)
+        (identifier)
+        (integer_literal))
+      (expression_statement
+        (compound_assignment_expr
+          (identifier)
+          (line_comment)
+          (integer_literal))))))
+
+================================================================================
+Line comment in unary expression
+================================================================================
+
+fn test() {
+    let x = ! // comment
+        true;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (let_declaration
+        (identifier)
+        (unary_expression
+          (line_comment)
+          (boolean_literal))))))
+
+================================================================================
+Line comment in tuple type
+================================================================================
+
+fn test() -> (
+    u32, // first
+    u32,
+) { (1, 2) }
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (tuple_type
+      (primitive_type)
+      (line_comment)
+      (primitive_type))
+    (block
+      (tuple_expression
+        (integer_literal)
+        (integer_literal)))))
+
+================================================================================
+Line comment in tuple pattern
+================================================================================
+
+fn test() {
+    let (x, // comment
+        y) = (1, 2);
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (let_declaration
+        (tuple_pattern
+          (identifier)
+          (line_comment)
+          (identifier))
+        (tuple_expression
+          (integer_literal)
+          (integer_literal))))))
+
+================================================================================
+Line comment in slice pattern
+================================================================================
+
+fn test() {
+    let [a, // comment
+        b] = arr;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (let_declaration
+        (slice_pattern
+          (identifier)
+          (line_comment)
+          (identifier))
+        (identifier)))))
+
+================================================================================
+Line comment in array expression
+================================================================================
+
+fn test() {
+    let arr = [
+        1, // first
+        2,
+        3,
+    ];
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (let_declaration
+        (identifier)
+        (array_expression
+          (integer_literal)
+          (line_comment)
+          (integer_literal)
+          (integer_literal))))))
+
+================================================================================
+Line comment between while and condition
+================================================================================
+
+fn test() {
+    while // comment
+        true
+    { break; }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (expression_statement
+        (while_expression
+          (line_comment)
+          (boolean_literal)
+          (block
+            (expression_statement
+              (break_expression))))))))
+
+================================================================================
+Line comment between for and pattern
+================================================================================
+
+fn test() {
+    for // comment
+        x
+    in // comment
+        0..10
+    {}
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (expression_statement
+        (for_expression
+          (line_comment)
+          (identifier)
+          (line_comment)
+          (range_expression
+            (integer_literal)
+            (integer_literal))
+          (block))))))
+
+================================================================================
+Comment-only function body
+================================================================================
+
+fn test() {
+    // comment-only body
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (line_comment))))
+
+================================================================================
+Line comment in loop spec clauses
+================================================================================
+
+fn test() {
+    loop
+        // loop comment
+    { break; }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (expression_statement
+        (loop_expression
+          (line_comment)
+          (block
+            (expression_statement
+              (break_expression))))))))
+
+================================================================================
+Line comment in function signature in trait
+================================================================================
+
+trait Foo {
+    fn bar(x: u32)
+        requires x > 0,
+        // sig comment
+        ensures true;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (trait_item
+    (type_identifier)
+    (declaration_list
+      (function_signature_item
+        (identifier)
+        (parameters
+          (parameter
+            (identifier)
+            (primitive_type)))
+        (requires_clause
+          (binary_expression
+            (identifier)
+            (integer_literal)))
+        (line_comment)
+        (ensures_clause
+          (boolean_literal))))))
+
+================================================================================
+Line comment after else
+================================================================================
+
+fn test() {
+    if true {
+    } else // comment
+    {
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (expression_statement
+        (if_expression
+          (boolean_literal)
+          (block)
+          (else_clause
+            (line_comment)
+            (block)))))))
+
+================================================================================
+Line comment in else if
+================================================================================
+
+fn test() {
+    if true {
+    } else // comment
+    if false {
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (expression_statement
+        (if_expression
+          (boolean_literal)
+          (block)
+          (else_clause
+            (line_comment)
+            (if_expression
+              (boolean_literal)
+              (block))))))))
+
+================================================================================
+Line comment in static item
+================================================================================
+
+static X: u32 = // comment
+    5;
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (static_item
+    (identifier)
+    (primitive_type)
+    (line_comment)
+    (integer_literal)))
+
+================================================================================
+Line comment in const item
+================================================================================
+
+const Y: u32 = // comment
+    10;
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (const_item
+    (identifier)
+    (primitive_type)
+    (line_comment)
+    (integer_literal)))
+
+================================================================================
+Line comment in type alias
+================================================================================
+
+type Z = // comment
+    u32;
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (type_item
+    (type_identifier)
+    (line_comment)
+    (primitive_type)))
+
+================================================================================
+Line comment in reference expression
+================================================================================
+
+fn test() {
+    let x = & // comment
+        5;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (let_declaration
+        (identifier)
+        (reference_expression
+          (line_comment)
+          (integer_literal))))))
+
+================================================================================
+Line comment in if-let condition
+================================================================================
+
+fn test() {
+    if let Some(x) = // comment
+        opt {}
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (expression_statement
+        (if_expression
+          (let_condition
+            (tuple_struct_pattern
+              (identifier)
+              (identifier))
+            (line_comment)
+            (identifier))
+          (block))))))
+
+================================================================================
+Line comment in closure return type
+================================================================================
+
+fn test() {
+    let f = |x: u32| -> // comment
+        u32 { x };
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (let_declaration
+        (identifier)
+        (closure_expression
+          (closure_parameters
+            (parameter
+              (identifier)
+              (primitive_type)))
+          (line_comment)
+          (primitive_type)
+          (block
+            (identifier)))))))
+
+================================================================================
+Line comment in range expression
+================================================================================
+
+fn test() {
+    for i in 0 // comment
+        ..10 {}
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (expression_statement
+        (for_expression
+          (identifier)
+          (range_expression
+            (integer_literal)
+            (line_comment)
+            (integer_literal))
+          (block))))))
+
+================================================================================
+Tactic with only double slashes
+================================================================================
+
+proof fn test() ensures true
+by {
+    //
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters)
+    (ensures_clause
+      (boolean_literal))
+    (tactic_block)))
+
+================================================================================
+String with only closing brace in tactic
+================================================================================
+
+proof fn test() ensures true
+by {
+    have h := "}"
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters)
+    (ensures_clause
+      (boolean_literal))
+    (tactic_block)))
+
+================================================================================
+Empty string in tactic
+================================================================================
+
+proof fn test() ensures true
+by {
+    have h := ""
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters)
+    (ensures_clause
+      (boolean_literal))
+    (tactic_block)))
+
+================================================================================
+Multiple strings on one line in tactic
+================================================================================
+
+proof fn test() ensures true
+by {
+    have h := "a" ++ "b" ++ "}"
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters)
+    (ensures_clause
+      (boolean_literal))
+    (tactic_block)))
+
+================================================================================
+Truly empty block comment in tactic
+================================================================================
+
+proof fn test() ensures true
+by {
+    /--/
+    omega
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (function_modifiers)
+    (identifier)
+    (parameters)
+    (ensures_clause
+      (boolean_literal))
+    (tactic_block)))
+
+================================================================================
+Extern block with comment
+================================================================================
+
+extern "C" {
+    // extern comment
+    fn ext_fn();
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (foreign_mod_item
+    (extern_modifier
+      (string_literal
+        (string_content)))
+    (declaration_list
+      (line_comment)
+      (function_signature_item
+        (identifier)
+        (parameters)))))
+
+================================================================================
+Unsafe block with comment
+================================================================================
+
+fn test() {
+    unsafe {
+        // unsafe comment
+        let x = 5;
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (expression_statement
+        (unsafe_block
+          (block
+            (line_comment)
+            (let_declaration
+              (identifier)
+              (integer_literal))))))))
+
+================================================================================
+Inner doc comment
+================================================================================
+
+fn test() {
+    //! inner doc
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (line_comment
+        (inner_doc_comment_marker)
+        (doc_comment)))))
