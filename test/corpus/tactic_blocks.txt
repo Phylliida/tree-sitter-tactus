@@ -2105,29 +2105,17 @@ fn test() {
             (identifier)))))))
 
 ================================================================================
-Line comment in range expression
+Line comment after range operator
 ================================================================================
 
 fn test() {
-    for i in 0 // comment
-        ..10 {}
+    for i in 0.. // comment
+        10 {}
 }
 
 --------------------------------------------------------------------------------
 
-(source_file
-  (function_item
-    (identifier)
-    (parameters)
-    (block
-      (expression_statement
-        (for_expression
-          (identifier)
-          (range_expression
-            (integer_literal)
-            (line_comment)
-            (integer_literal))
-          (block))))))
+
 
 ================================================================================
 Tactic with only double slashes
@@ -2299,3 +2287,219 @@ fn test() {
       (line_comment
         (inner_doc_comment_marker)
         (doc_comment)))))
+
+================================================================================
+Line comment in type cast
+================================================================================
+
+fn test() {
+    let x = 5 as // comment
+        u32;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (let_declaration
+        (identifier)
+        (type_cast_expression
+          (integer_literal)
+          (line_comment)
+          (primitive_type))))))
+
+================================================================================
+Line comment in index expression
+================================================================================
+
+fn test() {
+    let x = arr[
+        0 // comment
+    ];
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (let_declaration
+        (identifier)
+        (index_expression
+          (identifier)
+          (integer_literal)
+          (line_comment))))))
+
+================================================================================
+Line comment in match keyword
+================================================================================
+
+fn test() {
+    match // comment
+        x
+    {
+        _ => {}
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (expression_statement
+        (match_expression
+          (line_comment)
+          (identifier)
+          (match_block
+            (match_arm
+              (match_pattern)
+              (block))))))))
+
+================================================================================
+Line comment in tuple expression
+================================================================================
+
+fn test() {
+    let x = (
+        1, // first
+        2,
+    );
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (let_declaration
+        (identifier)
+        (tuple_expression
+          (integer_literal)
+          (line_comment)
+          (integer_literal))))))
+
+================================================================================
+Line comment after break with value
+================================================================================
+
+fn test() {
+    loop {
+        break // comment
+            5;
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (expression_statement
+        (loop_expression
+          (block
+            (expression_statement
+              (break_expression
+                (line_comment)
+                (integer_literal)))))))))
+
+================================================================================
+Line comment in method chain
+================================================================================
+
+fn test() {
+    vec.iter()
+        .map(|x| x + 1) // comment
+        .collect();
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (expression_statement
+        (call_expression
+          (field_expression
+            (call_expression
+              (field_expression
+                (call_expression
+                  (field_expression
+                    (identifier)
+                    (field_identifier))
+                  (arguments))
+                (field_identifier))
+              (arguments
+                (closure_expression
+                  (closure_parameters
+                    (identifier))
+                  (binary_expression
+                    (identifier)
+                    (integer_literal)))))
+            (line_comment)
+            (field_identifier))
+          (arguments))))))
+
+================================================================================
+Line comment between if condition and block
+================================================================================
+
+fn test() {
+    let x = if true // comment
+        { 1 } else { 2 };
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_item
+    (identifier)
+    (parameters)
+    (block
+      (let_declaration
+        (identifier)
+        (if_expression
+          (boolean_literal)
+          (ERROR
+            (line_comment))
+          (block
+            (integer_literal))
+          (else_clause
+            (block
+              (integer_literal))))))))
+
+================================================================================
+Line comment in macro definition
+================================================================================
+
+macro_rules! m {
+    // arm comment
+    ($x:expr) => { $x };
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (macro_definition
+    (identifier)
+    (line_comment)
+    (macro_rule
+      (token_tree_pattern
+        (token_binding_pattern
+          (metavariable)
+          (fragment_specifier)))
+      (token_tree
+        (metavariable)))))

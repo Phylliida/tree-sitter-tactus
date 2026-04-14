@@ -131,6 +131,29 @@ module.exports = grammar({
     [$.assert_expression, $._assert_by_expression],
     // range_expression full vs half-open when line_comment follows ..
     [$.range_expression, $.for_expression],
+    [$.range_expression, $.for_expression, $.field_expression],
+    // line_comment in expressions: ambiguity about which rule owns the comment
+    [$.range_expression, $.field_expression, $.unary_expression],
+    [$.range_expression, $.field_expression, $.reference_expression],
+    [$.range_expression, $.field_expression, $.binary_expression],
+    [$.range_expression, $.field_expression, $.assignment_expression],
+    [$.range_expression, $.field_expression, $.compound_assignment_expr],
+    [$.range_expression, $.field_expression, $.type_cast_expression],
+    [$.range_expression, $.field_expression, $._let_chain],
+    [$.range_expression, $.field_expression, $.assert_expression],
+    [$.range_expression, $.field_expression, $.let_condition],
+    [$.if_expression, $.field_expression],
+    [$.if_expression, $.field_expression, $.range_expression],
+    [$.if_expression, $.field_expression, $.binary_expression],
+    [$.while_expression, $.field_expression],
+    [$.while_expression, $.field_expression, $.range_expression],
+    [$.while_expression, $.field_expression, $.binary_expression],
+    [$.match_expression, $.field_expression],
+    [$.match_expression, $.field_expression, $.range_expression],
+    [$.match_expression, $.field_expression, $.binary_expression],
+    [$.for_expression, $.field_expression],
+    // tuple_expression vs enum_variant_list when line_comment follows comma
+    [$.tuple_expression],
     // Tactic block: _user_tactic is _expression, inheriting Rust expr conflicts
   ],
 
@@ -185,25 +208,18 @@ module.exports = grammar({
 
     // Section - Macro definitions
 
-    macro_definition: $ => {
-      const rules = seq(
-        repeat(seq($.macro_rule, ';')),
-        optional($.macro_rule),
-      );
-
-      return seq(
-        'macro_rules!',
-        field('name', choice(
-          $.identifier,
-          $._reserved_identifier,
-        )),
-        choice(
-          seq('(', rules, ')', ';'),
-          seq('[', rules, ']', ';'),
-          seq('{', rules, '}'),
-        ),
-      );
-    },
+    macro_definition: $ => seq(
+      'macro_rules!',
+      field('name', choice(
+        $.identifier,
+        $._reserved_identifier,
+      )),
+      choice(
+        seq('(', repeat(choice(seq($.macro_rule, ';'), $.line_comment)), optional($.macro_rule), ')', ';'),
+        seq('[', repeat(choice(seq($.macro_rule, ';'), $.line_comment)), optional($.macro_rule), ']', ';'),
+        seq('{', repeat(choice(seq($.macro_rule, ';'), $.line_comment)), optional($.macro_rule), '}'),
+      ),
+    ),
 
     macro_rule: $ => seq(
       field('left', $.token_tree_pattern),
@@ -1187,7 +1203,7 @@ module.exports = grammar({
     ),
 
     range_expression: $ => prec.left(PREC.range, choice(
-      seq($._expression, repeat($.line_comment), choice('..', '...', '..='), repeat($.line_comment), $._expression),
+      seq($._expression, repeat(prec.dynamic(-5, $.line_comment)), choice('..', '...', '..='), repeat($.line_comment), $._expression),
       seq($._expression, '..'),
       seq('..', repeat($.line_comment), $._expression),
       '..',
@@ -1263,6 +1279,7 @@ module.exports = grammar({
     type_cast_expression: $ => prec.left(PREC.cast, seq(
       field('value', $._expression),
       'as',
+      repeat($.line_comment),
       field('type', $._type),
     )),
 
@@ -1317,9 +1334,10 @@ module.exports = grammar({
     tuple_expression: $ => seq(
       '(',
       repeat($.attribute_item),
-      seq($._expression, ','),
-      repeat(seq($._expression, ',')),
+      seq($._expression, ',', repeat($.line_comment)),
+      repeat(seq($._expression, ',', repeat($.line_comment))),
       optional($._expression),
+      repeat($.line_comment),
       ')',
     ),
 
@@ -1367,6 +1385,7 @@ module.exports = grammar({
       'if',
       repeat($.line_comment),
       field('condition', $._condition),
+      repeat(prec.dynamic(5, $.line_comment)),
       field('consequence', $.block),
       optional(field('alternative', $.else_clause)),
     )),
@@ -1404,6 +1423,7 @@ module.exports = grammar({
 
     match_expression: $ => seq(
       'match',
+      repeat($.line_comment),
       field('value', $._expression),
       field('body', $.match_block),
     ),
@@ -1504,11 +1524,11 @@ module.exports = grammar({
 
     label: $ => seq('\'', $.identifier),
 
-    break_expression: $ => prec.left(seq('break', optional($.label), optional($._expression))),
+    break_expression: $ => prec.right(seq('break', optional($.label), repeat($.line_comment), optional($._expression))),
 
     continue_expression: $ => prec.left(seq('continue', optional($.label))),
 
-    index_expression: $ => prec(PREC.call, seq($._expression, '[', $._expression, ']')),
+    index_expression: $ => prec(PREC.call, seq($._expression, '[', repeat($.line_comment), $._expression, repeat($.line_comment), ']')),
 
     await_expression: $ => prec(PREC.field, seq(
       $._expression,
@@ -1518,6 +1538,7 @@ module.exports = grammar({
 
     field_expression: $ => prec(PREC.field, seq(
       field('value', $._expression),
+      repeat(prec.dynamic(-5, $.line_comment)),
       '.',
       field('field', choice(
         $._field_identifier,
