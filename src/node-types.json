@@ -647,6 +647,10 @@
           {
             "type": "_expression",
             "named": true
+          },
+          {
+            "type": "attributed_expression",
+            "named": true
           }
         ]
       },
@@ -865,6 +869,32 @@
       "types": [
         {
           "type": "attribute",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "attributed_expression",
+    "named": true,
+    "fields": {
+      "expression": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "_expression",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "attribute_item",
           "named": true
         }
       ]
@@ -1973,6 +2003,10 @@
           {
             "type": "_expression",
             "named": true
+          },
+          {
+            "type": "attributed_expression",
+            "named": true
           }
         ]
       },
@@ -2325,6 +2359,10 @@
         "types": [
           {
             "type": "_expression",
+            "named": true
+          },
+          {
+            "type": "attributed_expression",
             "named": true
           }
         ]
@@ -3240,9 +3278,21 @@
       }
     },
     "children": {
-      "multiple": false,
-      "required": true,
+      "multiple": true,
+      "required": false,
       "types": [
+        {
+          "type": "_declaration_statement",
+          "named": true
+        },
+        {
+          "type": "_expression",
+          "named": true
+        },
+        {
+          "type": "expression_statement",
+          "named": true
+        },
         {
           "type": "token_tree",
           "named": true

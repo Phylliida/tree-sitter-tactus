@@ -21,8 +21,7 @@ f::g::h!{};
       (token_tree)))
   (expression_statement
     (macro_invocation
-      (identifier)
-      (token_tree)))
+      (identifier)))
   (expression_statement
     (macro_invocation
       (scoped_identifier
@@ -35,8 +34,7 @@ f::g::h!{};
         (scoped_identifier
           (identifier)
           (identifier))
-        (identifier))
-      (token_tree))))
+        (identifier)))))
 
 ================================================================================
 Macro invocation - arbitrary tokens
@@ -153,9 +151,8 @@ ok! {
 (source_file
   (macro_invocation
     (identifier)
-    (token_tree
-      (line_comment)
-      (block_comment))))
+    (line_comment)
+    (block_comment)))
 
 ================================================================================
 Macro definition

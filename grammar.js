@@ -126,7 +126,9 @@ module.exports = grammar({
     [$.declaration_list, $.function_item],
     // assert(expr)/forall shared prefix between block and non-block variants
     [$.assert_expression, $._assert_by_expression],
-    // Tactic block: _user_tactic is _expression, inheriting Rust expr conflicts
+    [$.compound_assignment_expr, $._verus_condition],
+    [$.assignment_expression, $._verus_condition],
+    [$.binary_expression, $.attributed_expression],
   ],
 
   word: $ => $.identifier,
@@ -1113,7 +1115,18 @@ module.exports = grammar({
         $._reserved_identifier,
       )),
       '!',
-      alias($.delim_token_tree, $.token_tree),
+      choice(
+        // Brace body: parse as statements so tree-sitter sees items inside
+        // verus! { proof fn ... by { } } etc.
+        seq('{', repeat($._statement), optional($._expression), '}'),
+        // Paren/bracket body: opaque token tree
+        alias($._paren_bracket_token_tree, $.token_tree),
+      ),
+    ),
+
+    _paren_bracket_token_tree: $ => choice(
+      seq('(', repeat($._delim_tokens), ')'),
+      seq('[', repeat($._delim_tokens), ']'),
     ),
 
     delim_token_tree: $ => choice(
@@ -1604,14 +1617,14 @@ module.exports = grammar({
     forall_expression: $ => prec(PREC.closure, seq(
       'forall',
       field('parameters', $.closure_parameters),
-      field('body', $._expression),
+      field('body', $._verus_condition),
     )),
 
     // exists|params| body
     exists_expression: $ => prec(PREC.closure, seq(
       'exists',
       field('parameters', $.closure_parameters),
-      field('body', $._expression),
+      field('body', $._verus_condition),
     )),
 
     // choose|params| body
@@ -1624,6 +1637,12 @@ module.exports = grammar({
     // assert(cond) — simple assertion
     // assert forall|params| cond — quantified assertion
     // Non-block-ending variants (need ; in expression_statement)
+    // Verus condition: allows #[trigger] expr in assert forall / forall contexts
+    _verus_condition: $ => choice(
+      $._expression,
+      $.attributed_expression,
+    ),
+
     assert_expression: $ => prec(2, seq(
       'assert',
       choice(
@@ -1635,7 +1654,7 @@ module.exports = grammar({
         seq(
           'forall',
           field('parameters', $.closure_parameters),
-          field('condition', $._expression),
+          field('condition', $._verus_condition),
         ),
       ),
     )),
@@ -1654,11 +1673,17 @@ module.exports = grammar({
         seq(
           'forall',
           field('parameters', $.closure_parameters),
-          field('condition', $._expression),
+          field('condition', $._verus_condition),
         ),
       ),
       'by',
       field('proof', $._tactic_brace_body),
+    )),
+
+    // Verus: #[trigger] expr, #[via f] expr — expression-level attributes
+    attributed_expression: $ => prec(2, seq(
+      repeat1($.attribute_item),
+      field('expression', $._expression),
     )),
 
     // assume(cond) — kept for backwards compat, but prefer sorry in tactic blocks
