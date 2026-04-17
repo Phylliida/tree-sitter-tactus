@@ -130,6 +130,10 @@
         "named": true
       },
       {
+        "type": "attributed_expression",
+        "named": true
+      },
+      {
         "type": "await_expression",
         "named": true
       },
@@ -147,6 +151,14 @@
       },
       {
         "type": "call_expression",
+        "named": true
+      },
+      {
+        "type": "chained_conjunction",
+        "named": true
+      },
+      {
+        "type": "chained_disjunction",
         "named": true
       },
       {
@@ -647,10 +659,6 @@
           {
             "type": "_expression",
             "named": true
-          },
-          {
-            "type": "attributed_expression",
-            "named": true
           }
         ]
       },
@@ -697,7 +705,27 @@
             "named": false
           }
         ]
+      },
+      "solver": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          }
+        ]
       }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "requires_clause",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -997,6 +1025,10 @@
             "named": false
           },
           {
+            "type": "<==>",
+            "named": false
+          },
+          {
             "type": "==",
             "named": false
           },
@@ -1006,6 +1038,14 @@
           },
           {
             "type": "==>",
+            "named": false
+          },
+          {
+            "type": "=~=",
+            "named": false
+          },
+          {
+            "type": "=~~=",
             "named": false
           },
           {
@@ -1308,6 +1348,10 @@
             "named": true
           },
           {
+            "type": "attributed_expression",
+            "named": true
+          },
+          {
             "type": "await_expression",
             "named": true
           },
@@ -1325,6 +1369,14 @@
           },
           {
             "type": "call_expression",
+            "named": true
+          },
+          {
+            "type": "chained_conjunction",
+            "named": true
+          },
+          {
+            "type": "chained_disjunction",
             "named": true
           },
           {
@@ -1481,6 +1533,36 @@
       "types": [
         {
           "type": "_pattern",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "chained_conjunction",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "chained_disjunction",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "_expression",
           "named": true
         }
       ]
@@ -2003,10 +2085,6 @@
           {
             "type": "_expression",
             "named": true
-          },
-          {
-            "type": "attributed_expression",
-            "named": true
           }
         ]
       },
@@ -2359,10 +2437,6 @@
         "types": [
           {
             "type": "_expression",
-            "named": true
-          },
-          {
-            "type": "attributed_expression",
             "named": true
           }
         ]
@@ -5654,6 +5728,10 @@
     "named": false
   },
   {
+    "type": "&&&",
+    "named": false
+  },
+  {
     "type": "&=",
     "named": false
   },
@@ -5774,6 +5852,10 @@
     "named": false
   },
   {
+    "type": "<==>",
+    "named": false
+  },
+  {
     "type": "=",
     "named": false
   },
@@ -5791,6 +5873,14 @@
   },
   {
     "type": "=>",
+    "named": false
+  },
+  {
+    "type": "=~=",
+    "named": false
+  },
+  {
+    "type": "=~~=",
     "named": false
   },
   {
@@ -6235,6 +6325,10 @@
   },
   {
     "type": "||",
+    "named": false
+  },
+  {
+    "type": "|||",
     "named": false
   },
   {

@@ -954,3 +954,314 @@ by {
               (identifier)))
           right: (identifier)))
       body: (tactic_block))))
+
+================================================================================
+Assert by(solver) — no body
+================================================================================
+
+verus! {
+fn test() {
+    assert(x > 0) by (nonlinear_arith);
+}
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (macro_invocation
+    macro: (identifier)
+    (function_item
+      name: (identifier)
+      parameters: (parameters)
+      body: (block
+        (expression_statement
+          (assert_expression
+            condition: (binary_expression
+              left: (identifier)
+              right: (integer_literal))
+            solver: (identifier)))
+        (empty_statement)))))
+
+================================================================================
+Assert by(compute_only) — no space before paren
+================================================================================
+
+verus! {
+fn test() {
+    assert(y == 1) by(compute_only);
+}
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (macro_invocation
+    macro: (identifier)
+    (function_item
+      name: (identifier)
+      parameters: (parameters)
+      body: (block
+        (expression_statement
+          (assert_expression
+            condition: (binary_expression
+              left: (identifier)
+              right: (integer_literal))
+            solver: (identifier)))
+        (empty_statement)))))
+
+================================================================================
+Assert by(solver) requires with body
+================================================================================
+
+verus! {
+fn test() {
+    assert(z > 0)
+        by (nonlinear_arith)
+        requires
+            a > 0,
+    {
+        lemma_foo();
+    };
+}
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (macro_invocation
+    macro: (identifier)
+    (function_item
+      name: (identifier)
+      parameters: (parameters)
+      body: (block
+        (expression_statement
+          (assert_expression
+            condition: (binary_expression
+              left: (identifier)
+              right: (integer_literal))
+            solver: (identifier)
+            (requires_clause
+              (binary_expression
+                left: (identifier)
+                right: (integer_literal)))))
+        (empty_statement)))))
+
+================================================================================
+Verus <==> biconditional operator
+================================================================================
+
+verus! {
+spec fn t(a: bool, b: bool) -> bool { a <==> b }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (macro_invocation
+    macro: (identifier)
+    (function_item
+      (function_modifiers)
+      name: (identifier)
+      parameters: (parameters
+        (parameter
+          pattern: (identifier)
+          type: (primitive_type))
+        (parameter
+          pattern: (identifier)
+          type: (primitive_type)))
+      return_type: (primitive_type)
+      body: (block
+        (binary_expression
+          left: (identifier)
+          right: (identifier))))))
+
+================================================================================
+Verus =~= extensional equality
+================================================================================
+
+verus! {
+spec fn t(a: int, b: int) -> bool { a =~= b }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (macro_invocation
+    macro: (identifier)
+    (function_item
+      (function_modifiers)
+      name: (identifier)
+      parameters: (parameters
+        (parameter
+          pattern: (identifier)
+          type: (primitive_type))
+        (parameter
+          pattern: (identifier)
+          type: (primitive_type)))
+      return_type: (primitive_type)
+      body: (block
+        (binary_expression
+          left: (identifier)
+          right: (identifier))))))
+
+================================================================================
+Verus =~~= deep extensional equality
+================================================================================
+
+verus! {
+spec fn t(a: int, b: int) -> bool { a =~~= b }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (macro_invocation
+    macro: (identifier)
+    (function_item
+      (function_modifiers)
+      name: (identifier)
+      parameters: (parameters
+        (parameter
+          pattern: (identifier)
+          type: (primitive_type))
+        (parameter
+          pattern: (identifier)
+          type: (primitive_type)))
+      return_type: (primitive_type)
+      body: (block
+        (binary_expression
+          left: (identifier)
+          right: (identifier))))))
+
+================================================================================
+Verus &&& chained conjunction
+================================================================================
+
+verus! {
+spec fn t() -> bool {
+    &&& a > 0
+    &&& b > 0
+}
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (macro_invocation
+    macro: (identifier)
+    (function_item
+      (function_modifiers)
+      name: (identifier)
+      parameters: (parameters)
+      return_type: (primitive_type)
+      body: (block
+        (chained_conjunction
+          (binary_expression
+            left: (identifier)
+            right: (integer_literal))
+          (binary_expression
+            left: (identifier)
+            right: (integer_literal)))))))
+
+================================================================================
+Verus ||| chained disjunction
+================================================================================
+
+verus! {
+spec fn t() -> bool {
+    ||| a > 0
+    ||| b > 0
+}
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (macro_invocation
+    macro: (identifier)
+    (function_item
+      (function_modifiers)
+      name: (identifier)
+      parameters: (parameters)
+      return_type: (primitive_type)
+      body: (block
+        (chained_disjunction
+          (binary_expression
+            left: (identifier)
+            right: (integer_literal))
+          (binary_expression
+            left: (identifier)
+            right: (integer_literal)))))))
+
+================================================================================
+Verus =~= before assert by (vstd pattern)
+================================================================================
+
+verus! {
+fn test() {
+    assert(s =~= Set::empty()) by {
+        lemma_foo();
+    };
+}
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (macro_invocation
+    macro: (identifier)
+    (function_item
+      name: (identifier)
+      parameters: (parameters)
+      body: (block
+        (expression_statement
+          (assert_expression
+            condition: (binary_expression
+              left: (identifier)
+              right: (call_expression
+                function: (scoped_identifier
+                  path: (identifier)
+                  name: (identifier))
+                arguments: (arguments)))))
+        (empty_statement)))))
+
+================================================================================
+Verus <==> with #[trigger] in assert forall by (vstd pattern)
+================================================================================
+
+verus! {
+fn test() {
+    assert forall|x: int| 0 <= x <==> #[trigger] f(x) by {
+        lemma(x);
+    };
+}
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (macro_invocation
+    macro: (identifier)
+    (function_item
+      name: (identifier)
+      parameters: (parameters)
+      body: (block
+        (expression_statement
+          (assert_expression
+            parameters: (closure_parameters
+              (parameter
+                pattern: (identifier)
+                type: (primitive_type)))
+            condition: (binary_expression
+              left: (binary_expression
+                left: (integer_literal)
+                right: (identifier))
+              right: (attributed_expression
+                (attribute_item
+                  (attribute
+                    (identifier)))
+                expression: (call_expression
+                  function: (identifier)
+                  arguments: (arguments
+                    (identifier)))))))
+        (empty_statement)))))

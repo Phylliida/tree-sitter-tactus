@@ -1057,6 +1057,26 @@
                 {
                   "type": "STRING",
                   "value": "==>"
+                },
+                {
+                  "type": "STRING",
+                  "value": "<==>"
+                },
+                {
+                  "type": "STRING",
+                  "value": "=~="
+                },
+                {
+                  "type": "STRING",
+                  "value": "=~~="
+                },
+                {
+                  "type": "STRING",
+                  "value": "&&&"
+                },
+                {
+                  "type": "STRING",
+                  "value": "|||"
                 }
               ]
             }
@@ -6096,6 +6116,18 @@
         },
         {
           "type": "SYMBOL",
+          "name": "attributed_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "chained_conjunction"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "chained_disjunction"
+        },
+        {
+          "type": "SYMBOL",
           "name": "assert_expression"
         },
         {
@@ -6994,6 +7026,14 @@
                     {
                       "type": "STRING",
                       "value": "!=="
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "=~="
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "=~~="
                     }
                   ]
                 }
@@ -7162,6 +7202,10 @@
                     {
                       "type": "STRING",
                       "value": "==>"
+                    },
+                    {
+                      "type": "STRING",
+                      "value": "<==>"
                     },
                     {
                       "type": "STRING",
@@ -9248,7 +9292,7 @@
             "name": "body",
             "content": {
               "type": "SYMBOL",
-              "name": "_verus_condition"
+              "name": "_expression"
             }
           }
         ]
@@ -9277,7 +9321,7 @@
             "name": "body",
             "content": {
               "type": "SYMBOL",
-              "name": "_verus_condition"
+              "name": "_expression"
             }
           }
         ]
@@ -9311,19 +9355,6 @@
           }
         ]
       }
-    },
-    "_verus_condition": {
-      "type": "CHOICE",
-      "members": [
-        {
-          "type": "SYMBOL",
-          "name": "_expression"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "attributed_expression"
-        }
-      ]
     },
     "assert_expression": {
       "type": "PREC",
@@ -9379,7 +9410,7 @@
                     "name": "condition",
                     "content": {
                       "type": "SYMBOL",
-                      "name": "_verus_condition"
+                      "name": "_expression"
                     }
                   }
                 ]
@@ -9443,7 +9474,7 @@
                     "name": "condition",
                     "content": {
                       "type": "SYMBOL",
-                      "name": "_verus_condition"
+                      "name": "_expression"
                     }
                   }
                 ]
@@ -9455,19 +9486,126 @@
             "value": "by"
           },
           {
-            "type": "FIELD",
-            "name": "proof",
-            "content": {
-              "type": "SYMBOL",
-              "name": "_tactic_brace_body"
-            }
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "FIELD",
+                "name": "proof",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "_tactic_brace_body"
+                }
+              },
+              {
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "STRING",
+                    "value": "("
+                  },
+                  {
+                    "type": "FIELD",
+                    "name": "solver",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "identifier"
+                    }
+                  },
+                  {
+                    "type": "STRING",
+                    "value": ")"
+                  },
+                  {
+                    "type": "SYMBOL",
+                    "name": "requires_clause"
+                  },
+                  {
+                    "type": "FIELD",
+                    "name": "proof",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "_tactic_brace_body"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "STRING",
+                    "value": "("
+                  },
+                  {
+                    "type": "FIELD",
+                    "name": "solver",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "identifier"
+                    }
+                  },
+                  {
+                    "type": "STRING",
+                    "value": ")"
+                  }
+                ]
+              }
+            ]
           }
         ]
       }
     },
+    "chained_conjunction": {
+      "type": "PREC_LEFT",
+      "value": 4,
+      "content": {
+        "type": "REPEAT1",
+        "content": {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "&&&"
+            },
+            {
+              "type": "PREC",
+              "value": 5,
+              "content": {
+                "type": "SYMBOL",
+                "name": "_expression"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "chained_disjunction": {
+      "type": "PREC_LEFT",
+      "value": 3,
+      "content": {
+        "type": "REPEAT1",
+        "content": {
+          "type": "SEQ",
+          "members": [
+            {
+              "type": "STRING",
+              "value": "|||"
+            },
+            {
+              "type": "PREC",
+              "value": 4,
+              "content": {
+                "type": "SYMBOL",
+                "name": "_expression"
+              }
+            }
+          ]
+        }
+      }
+    },
     "attributed_expression": {
       "type": "PREC",
-      "value": 2,
+      "value": -1,
       "content": {
         "type": "SEQ",
         "members": [
@@ -11188,15 +11326,47 @@
     ],
     [
       "compound_assignment_expr",
-      "_verus_condition"
+      "_expression"
     ],
     [
       "assignment_expression",
-      "_verus_condition"
+      "_expression"
     ],
     [
       "binary_expression",
       "attributed_expression"
+    ],
+    [
+      "_statement",
+      "function_item",
+      "attributed_expression"
+    ],
+    [
+      "compound_assignment_expr",
+      "chained_conjunction"
+    ],
+    [
+      "compound_assignment_expr",
+      "chained_disjunction"
+    ],
+    [
+      "assignment_expression",
+      "chained_conjunction"
+    ],
+    [
+      "assignment_expression",
+      "chained_disjunction"
+    ],
+    [
+      "binary_expression",
+      "chained_conjunction"
+    ],
+    [
+      "binary_expression",
+      "chained_disjunction"
+    ],
+    [
+      "_assert_by_expression"
     ]
   ],
   "precedences": [],

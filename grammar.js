@@ -54,7 +54,7 @@ const TOKEN_TREE_NON_SPECIAL_PUNCTUATION = [
   '>>=', '=', '==', '!=', '>', '<', '>=', '<=', '@', '_', '.',
   '..', '...', '..=', ',', ';', ':', '::', '->', '=>', '#', '?',
   // Tactus operators
-  '===', '!==', '==>',
+  '===', '!==', '==>', '<==>', '=~=', '=~~=', '&&&', '|||',
 ];
 
 const primitiveTypes = numericTypes.concat(['bool', 'str', 'char']);
@@ -126,9 +126,18 @@ module.exports = grammar({
     [$.declaration_list, $.function_item],
     // assert(expr)/forall shared prefix between block and non-block variants
     [$.assert_expression, $._assert_by_expression],
-    [$.compound_assignment_expr, $._verus_condition],
-    [$.assignment_expression, $._verus_condition],
+    [$.compound_assignment_expr, $._expression],
+    [$.assignment_expression, $._expression],
     [$.binary_expression, $.attributed_expression],
+    [$._statement, $.function_item, $.attributed_expression],
+    [$.compound_assignment_expr, $.chained_conjunction],
+    [$.compound_assignment_expr, $.chained_disjunction],
+    [$.assignment_expression, $.chained_conjunction],
+    [$.assignment_expression, $.chained_disjunction],
+    [$.binary_expression, $.chained_conjunction],
+    [$.binary_expression, $.chained_disjunction],
+    // assert(P) by(solver) • requires — part of this assert or next clause?
+    [$._assert_by_expression],
   ],
 
   word: $ => $.identifier,
@@ -1070,6 +1079,11 @@ module.exports = grammar({
       $.parenthesized_expression,
       $.struct_expression,
       $._expression_ending_with_block,
+      // Verus: #[trigger] expr, #[via f] expr
+      $.attributed_expression,
+      // Verus: &&& / ||| prefix chaining operators
+      $.chained_conjunction,
+      $.chained_disjunction,
       // Tactus expressions
       $.assert_expression,
       $.assume_expression,
@@ -1209,7 +1223,7 @@ module.exports = grammar({
         [PREC.bitand, '&'],
         [PREC.bitor, '|'],
         [PREC.bitxor, '^'],
-        [PREC.comparative, choice('==', '!=', '<', '<=', '>', '>=', '===', '!==')],
+        [PREC.comparative, choice('==', '!=', '<', '<=', '>', '>=', '===', '!==', '=~=', '=~~=')],
         [PREC.shift, choice('<<', '>>')],
         [PREC.additive, choice('+', '-')],
         [PREC.multiplicative, choice('*', '/', '%')],
@@ -1226,7 +1240,7 @@ module.exports = grammar({
         // Tactus: right-associative implication operators
         prec.right(PREC.implies, seq(
           field('left', $._expression),
-          field('operator', choice('==>', 'implies')),
+          field('operator', choice('==>', '<==>', 'implies')),
           field('right', $._expression),
         )),
       );
@@ -1617,14 +1631,14 @@ module.exports = grammar({
     forall_expression: $ => prec(PREC.closure, seq(
       'forall',
       field('parameters', $.closure_parameters),
-      field('body', $._verus_condition),
+      field('body', $._expression),
     )),
 
     // exists|params| body
     exists_expression: $ => prec(PREC.closure, seq(
       'exists',
       field('parameters', $.closure_parameters),
-      field('body', $._verus_condition),
+      field('body', $._expression),
     )),
 
     // choose|params| body
@@ -1637,12 +1651,6 @@ module.exports = grammar({
     // assert(cond) — simple assertion
     // assert forall|params| cond — quantified assertion
     // Non-block-ending variants (need ; in expression_statement)
-    // Verus condition: allows #[trigger] expr in assert forall / forall contexts
-    _verus_condition: $ => choice(
-      $._expression,
-      $.attributed_expression,
-    ),
-
     assert_expression: $ => prec(2, seq(
       'assert',
       choice(
@@ -1654,13 +1662,15 @@ module.exports = grammar({
         seq(
           'forall',
           field('parameters', $.closure_parameters),
-          field('condition', $._verus_condition),
+          field('condition', $._expression),
         ),
       ),
     )),
 
     // assert(cond) by { tactic_proof }
-    // assert forall|params| [hyp implies] cond by { tactic_proof }
+    // assert(cond) by(solver)
+    // assert(cond) by(solver) requires R { body }
+    // assert forall|params| cond by { tactic_proof }
     // Block-ending variants (no ; needed in expression_statement)
     _assert_by_expression: $ => prec(2, seq(
       'assert',
@@ -1673,15 +1683,45 @@ module.exports = grammar({
         seq(
           'forall',
           field('parameters', $.closure_parameters),
-          field('condition', $._verus_condition),
+          field('condition', $._expression),
         ),
       ),
       'by',
-      field('proof', $._tactic_brace_body),
+      choice(
+        // by { tactic_proof }
+        field('proof', $._tactic_brace_body),
+        // by(solver) requires R { body }
+        seq(
+          '(',
+          field('solver', $.identifier),
+          ')',
+          $.requires_clause,
+          field('proof', $._tactic_brace_body),
+        ),
+        // by(solver) — no body, no requires
+        seq(
+          '(',
+          field('solver', $.identifier),
+          ')',
+        ),
+      ),
+    )),
+
+    // Verus: &&& a &&& b &&& c — chained conjunction (prefix form)
+    // Each arm is separated by &&&. Arms bind tighter than &&&
+    // so `&&& a > 0 &&& b > 0` = [a > 0, b > 0], not [a > 0 &&& b > 0].
+    chained_conjunction: $ => prec.left(PREC.and, repeat1(
+      seq('&&&', prec(PREC.and + 1, $._expression)),
+    )),
+
+    // Verus: ||| a ||| b ||| c — chained disjunction (prefix form)
+    chained_disjunction: $ => prec.left(PREC.or, repeat1(
+      seq('|||', prec(PREC.or + 1, $._expression)),
     )),
 
     // Verus: #[trigger] expr, #[via f] expr — expression-level attributes
-    attributed_expression: $ => prec(2, seq(
+    // Low precedence so #[attr] before declarations (fn, struct, etc.) wins.
+    attributed_expression: $ => prec(-1, seq(
       repeat1($.attribute_item),
       field('expression', $._expression),
     )),
